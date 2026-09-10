@@ -1,6 +1,7 @@
-# Project descrption — GitHub Pages / Jekyll
+# Project descrption — Visual Project Memo 
 
 This repository is a lightweight private project memo site.
+Jekyll -> GitHub Pages code & structure created and debugged with AI assistance, ChatGPT 5.6 Sol High 9/2026. 
 
 ## Repository structure
 
