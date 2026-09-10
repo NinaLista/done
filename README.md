@@ -4,18 +4,19 @@ This repository is a lightweight private project memo site.
 
 ## Repository structure
 
+```text
 REPO/
 ├── .gitignore
 ├── README.md
-├── _config.yml # main Jekyll configuration file
-├── index.html # main page content in the "frame"
+├── _config.yml
+├── index.html
 │
-├── _includes/ # Jekyll folder for small reusable project card
+├── _includes/
 │   └── project-card.html
 │
-├── _layouts/ # Jekyll folder for page templates
-│   ├── default.html # general page shell (like an overall "frame")
-│   └── project.html # individual project detail pages
+├── _layouts/
+│   ├── default.html
+│   └── project.html
 │
 ├── _projects/
 │   ├── project-one.md
@@ -24,25 +25,32 @@ REPO/
 │
 └── assets/
     ├── css/
-    │   └── styles.css # visual styling
+    │   └── styles.css
     ├── js/
-    │   └── app.js # JavaScript file that for page’s interactive behavior
+    │   └── app.js
     └── images/
-        ├── ...
-
+        └── ...
+```
+_config.yml — main Jekyll configuration  
+index.html — showcase homepage  
+_includes/ — reusable HTML pieces, currently the project card  
+_layouts/ — page templates  
+_projects/ — one Markdown file per project  
+assets/css/ — visual styling  
+assets/js/ — filtering, sorting, card interaction  
+assets/images/ — project images  
 
 ## Designed for **GitHub Pages → Deploy from a branch**
 
-Files to repo → Settings → Pages → Build and deployment → Deploy from a branch.Selection: `main` branch and `/(root)` folder.
-
+Files to repo → Settings → Pages → Build and deployment → Deploy from a branch.  
+Selection: `main` branch and `/(root)` folder.
 No custom workflow file required.  
 GitHub Pages uses Jekyll when publishing from a branch.
 
-## Site name and intro
+## Site 
 
-Page reads automatically: `title`, `tagline`, `intro`,  `description`.
-
-The project grid continuous, no pagination. Images browser-native lazy loading (browser doesn’t download every image immediately).
+Page reads automatically: `title`, `tagline`, `intro`,  `description`.  
+The project grid continuous, no pagination. Images browser-native lazy loading (browser doesn’t download every image immediately).  
 
 ## Adding a project
 
@@ -66,7 +74,9 @@ external_url: "https:// optional /"
 ---
 ```
 
-Some links need to open an internal .md file instead of an external site, **remove the `external_url` line** and write the longer description below the closing `---`. Everything after the second --- becomes the longer project webpage if that project has an internal page.
+For projects with no external link, might use internal .md file instead. 
+**Remove the `external_url` line** -> write longer description below the closing `---`. 
+Everything after the second --- becomes the longer project webpage if that project has an internal page. 
 
 Example:
 
@@ -110,6 +120,6 @@ This is the longer public-safe description.
 Demo SVG placeholders.
 Intention: JPEG/WebP photographs, SVG simple graphics. 
 
-## GitHub Desktop workflow & .gitignore
+## Updates: GitHub Desktop workflow & .gitignore
 
 Edit in cloned repo folder -> review **Changes** list ->  commit -> commit and push. See what `.gitignore` keeps out.
