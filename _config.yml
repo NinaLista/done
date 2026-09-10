@@ -1,0 +1,24 @@
+title: "Studio Flux"
+description: "A visual catalogue of projects, experiments, and ideas."
+tagline: "Ideas worth keeping."
+intro: "A visual catalogue of projects, experiments, prototypes, writing, and things still taking shape."
+markdown: kramdown
+
+collections:
+  projects:
+    output: true
+    permalink: /projects/:name/
+
+defaults:
+  - scope:
+      path: ""
+      type: projects
+    values:
+      layout: project
+
+exclude:
+  - README.md
+
+# Do not set url or baseurl here.
+# On GitHub Pages, the built-in jekyll-github-metadata plugin supplies the
+# correct project-site base path automatically, whatever the repository name.

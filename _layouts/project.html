@@ -1,0 +1,23 @@
+---
+layout: default
+---
+<main class="project-page">
+  <a class="back-link" href="{{ '/' | relative_url }}">← Back to projects</a>
+
+  <article class="project-article">
+    <header class="project-article__header">
+      <p class="eyebrow">Project note</p>
+      <h1>{{ page.title | escape }}</h1>
+      {% if page.back_text %}<p class="project-article__lead">{{ page.back_text | escape }}</p>{% endif %}
+      <div class="tag-list tag-list--article" aria-label="Project tags">
+        {% for tag in page.tags %}<span class="tag">{{ tag | escape }}</span>{% endfor %}
+      </div>
+    </header>
+
+    {% if page.image %}
+      <img class="project-hero" src="{{ page.image | relative_url }}" alt="" style="object-position: {{ page.image_position | default: '50% 50%' }};">
+    {% endif %}
+
+    <div class="prose">{{ content }}</div>
+  </article>
+</main>

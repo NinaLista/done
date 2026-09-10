@@ -1,0 +1,52 @@
+{% assign p = include.project %}
+<article class="project-card-wrap size-{{ p.card_size | default: 'standard' }}"
+  data-project-card
+  data-title="{{ p.title | escape }}"
+  data-date="{{ p.date | date: '%Y-%m-%d' }}"
+  data-tags="{{ p.tags | join: '|' | escape }}">
+
+  <div class="project-card" data-flip-card>
+    <div class="project-card__inner">
+      <section class="project-card__face project-card__front{% if p.card_style == 'type' %} project-card__front--type{% endif %}"
+        aria-hidden="false"
+        {% if p.background %}style="--card-bg: {{ p.background }};"{% endif %}>
+
+        {% if p.image %}
+          <img class="project-card__image" src="{{ p.image | relative_url }}" alt="" loading="lazy" style="object-position: {{ p.image_position | default: '50% 50%' }};">
+        {% endif %}
+
+        <div class="project-card__shade" aria-hidden="true"></div>
+        {% if p.handwritten_note %}<div class="handwritten-note" aria-hidden="true">{{ p.handwritten_note | escape }}</div>{% endif %}
+
+        <div class="project-card__front-copy">
+          <h2{% if p.title_style == 'handwritten' %} class="handwritten-title"{% endif %}>{{ p.title | escape }}</h2>
+          <p>{{ p.short_text | escape }}</p>
+          <div class="tag-list tag-list--front" aria-label="Project tags">
+            {% for tag in p.tags limit:3 %}<span class="tag">{{ tag | escape }}</span>{% endfor %}
+          </div>
+        </div>
+
+        <span class="fold-cue" aria-hidden="true"></span>
+        <button class="flip-trigger" type="button" aria-label="Show details for {{ p.title | escape }}"></button>
+      </section>
+
+      <section class="project-card__face project-card__back" aria-hidden="true">
+        <button class="back-close" type="button" tabindex="-1" aria-label="Show front of {{ p.title | escape }}">←</button>
+        <h2>{{ p.title | escape }}</h2>
+        <p class="project-card__back-text">{{ p.back_text | escape }}</p>
+
+        <div class="project-card__back-bottom">
+          <div class="tag-list tag-list--back" aria-label="Project tags">
+            {% for tag in p.tags %}<span class="tag">{{ tag | escape }}</span>{% endfor %}
+          </div>
+
+          {% if p.external_url %}
+            <a class="open-project" tabindex="-1" href="{{ p.external_url | escape }}" target="_blank" rel="noopener noreferrer">{{ p.link_label | default: 'Open project' | escape }} →</a>
+          {% else %}
+            <a class="open-project" tabindex="-1" href="{{ p.url | relative_url }}">{{ p.link_label | default: 'Open project' | escape }} →</a>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+  </div>
+</article>

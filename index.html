@@ -1,0 +1,42 @@
+---
+layout: default
+title:
+---
+<main class="site-shell">
+  <header class="site-header">
+    <div class="brand-block">
+      <div class="brand-mark" aria-label="Logo placeholder"><span></span><span></span></div>
+      <div>
+        <h1>{{ site.title | escape }}</h1>
+        <p class="handwritten brand-handwriting">{{ site.tagline | escape }}</p>
+      </div>
+    </div>
+
+    <div class="intro-block">
+      <p>{{ site.intro | escape }}</p>
+      <span>EXPLORE · BUILD · WRITE · SHARE</span>
+    </div>
+  </header>
+
+  <section class="controls" aria-label="Project filters and sorting">
+    <div class="filter-scroller" data-filter-list>
+      <button class="chip is-active" type="button" data-filter="All" aria-pressed="true">All</button>
+    </div>
+
+    <div class="sort-controls" aria-label="Sort projects">
+      <span>Sort</span>
+      <button class="chip is-active" type="button" data-sort="newest" aria-pressed="true">Newest</button>
+      <button class="chip" type="button" data-sort="oldest" aria-pressed="false">Oldest</button>
+      <button class="chip" type="button" data-sort="random" aria-pressed="false">Random</button>
+    </div>
+  </section>
+
+  <p class="sr-only" aria-live="polite" data-grid-status></p>
+
+  <section id="work" class="project-grid" data-project-grid aria-label="Projects">
+    {% assign projects = site.projects | sort: 'date' | reverse %}
+    {% for project in projects %}
+      {% include project-card.html project=project %}
+    {% endfor %}
+  </section>
+</main>
