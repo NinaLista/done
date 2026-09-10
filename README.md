@@ -103,7 +103,7 @@ This is the longer public-safe description.
 
 - `title` — project title.
 - `date` — used by Newest / Oldest sorting. Use `YYYY-MM-DD`.
-- `tags` — one project may have several tags; filters (new tag items that I might add) are generated automatically onto the page.
+- `tags` — one project may have several tags; add tags as wished; filters for new tag items generated automatically onto the page.
 - `short_text` — front-side description.
 - `back_text` — back-side description.
 - `image` — optional local image path. Put images in `assets/images/`.
@@ -119,8 +119,8 @@ This is the longer public-safe description.
 ## Images
 
 Demo SVG placeholders.
-Intention: JPEG/WebP photographs, SVG simple graphics. 
+Intention: JPEG/WebP, SVG simple graphics. 
 
-## Updates: GitHub Desktop workflow & .gitignore
+## Making updates: GitHub Desktop workflow & .gitignore
 
 Edit in cloned repo folder -> review **Changes** list ->  commit -> commit and push. See what `.gitignore` keeps out.
