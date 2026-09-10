@@ -16,8 +16,10 @@ layout: default
 
     {% if page.image %}
       <img class="project-hero" src="{{ page.image | relative_url }}" alt="" style="object-position: {{ page.image_position | default: '50% 50%' }};">
+      <a class="back-link project-article__back-link" href="{{ '/' | relative_url }}">← Back to projects</a>
     {% endif %}
 
     <div class="prose">{{ content }}</div>
+    <a class="back-link project-article__back-link project-article__back-link--bottom" href="{{ '/' | relative_url }}">← Back to projects</a>
   </article>
 </main>
