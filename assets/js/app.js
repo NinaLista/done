@@ -98,7 +98,10 @@
     };
 
     frontButton.addEventListener('click', () => setFlipped(true));
-    backButton.addEventListener('click', () => setFlipped(false));
+    back.addEventListener('click', event => {
+      if (event.target.closest('.open-project')) return;
+      setFlipped(false);
+    });
     wrapper.addEventListener('keydown', event => {
       if (event.key === 'Escape' && card.classList.contains('is-flipped')) setFlipped(false);
     });
