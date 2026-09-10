@@ -89,6 +89,8 @@
       card.classList.toggle('is-flipped', flipped);
       front.setAttribute('aria-hidden', String(flipped));
       back.setAttribute('aria-hidden', String(!flipped));
+      front.toggleAttribute('inert', flipped);
+      back.toggleAttribute('inert', !flipped);
       frontButton.tabIndex = flipped ? -1 : 0;
       backButton.tabIndex = flipped ? 0 : -1;
       openLink.tabIndex = flipped ? 0 : -1;
@@ -97,11 +99,10 @@
       else frontButton.focus({ preventScroll: true });
     };
 
+    back.setAttribute('inert', '');
     frontButton.addEventListener('click', () => setFlipped(true));
-    back.addEventListener('click', event => {
-      if (event.target.closest('.open-project')) return;
-      setFlipped(false);
-    });
+    openLink.addEventListener('click', event => event.stopPropagation());
+    back.addEventListener('click', () => setFlipped(false));
     wrapper.addEventListener('keydown', event => {
       if (event.key === 'Escape' && card.classList.contains('is-flipped')) setFlipped(false);
     });
