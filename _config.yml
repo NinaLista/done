@@ -22,3 +22,4 @@ exclude:
 # Do not set url or baseurl here.
 # On GitHub Pages, the built-in jekyll-github-metadata plugin supplies the
 # correct project-site base path automatically, whatever the repository name.
+# Rebuild after repository rename
