@@ -8,5 +8,5 @@ image: /assets/images/tide.svg
 image_position: 46% 52%
 card_style: image
 card_size: standard
-external_url: "https://example.com/](https://ninalista.github.io/tools/01-elementary-intro.html"
+external_url: "https://ninalista.github.io/tools/01-elementary-intro.html"
 ---
