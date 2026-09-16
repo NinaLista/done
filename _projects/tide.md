@@ -1,5 +1,5 @@
 ---
-title: "Tide"
+title: "Tekoäly työkaluna"
 date: 2026-07-26
 tags: [Translation, IT skills, Tools, AI]
 short_text: "Kirjallisuuden kääntäminen ja tekoäly."
