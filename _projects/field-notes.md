@@ -1,16 +1,11 @@
 ---
-title: "Field Notes"
+title: "This page. Tämä sivusto"
 date: 2026-06-11
-tags: [Writing, Research, Personal]
-short_text: "Observations on technology, creativity, and what comes next."
-back_text: "Short research notes that sit somewhere between a notebook and a finished article. The card gives the collection a visual presence without pretending every idea is a full product."
+tags: [IT skills, Coding, Open source, AI]
+short_text: "Suunnittelin ja toteutin tämän projektisivuston. Template-repo saatavilla."
+back_text: "Rakensin Jekyll- ja GitHub Pages -pohjaisen templaten, jossa projektit lisätään Markdown-tiedostoina. Kortit tukevat kuvia, tageja, lajittelua, 3D-kääntöä sekä ulkoisia ja sisäisiä projektisivuja."
 image: /assets/images/fieldnotes.svg
 image_position: 50% 52%
 card_style: image
 card_size: standard
 ---
-## Field Notes
-
-Use the body of the Markdown file for a longer text when there is no external public project to open.
-
-You can keep this section as short or as long as you want.
