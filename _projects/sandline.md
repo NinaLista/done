@@ -1,10 +1,10 @@
 ---
-title: "Sandline"
-date: 2026-08-17
-tags: [Visual, AI, Experiments]
-short_text: "Generative landscapes for a calmer internet."
-back_text: "A visual experiment exploring restrained generative landscapes, quiet motion, and simple rules. The external project could live anywhere while this catalogue stays stable."
-image: /assets/images/sandline.svg
+title: "Digitaalinen kirjasto"
+date: 2026-09
+tags: [Books, Translation, IT Skills, Coding, Experiments, Personal, Shipping]
+short_text: "Digitaalinen kirjahylly. Teostiedot, kuvaukset, lajittelut."
+back_text: "Digitaalisessa kirjahyllyssä kätevästi omien kirjojen tiedot. Eri projekteja & toteutustapoja, esim. eri tavoin koottuja tietokantoja."
+image: /assets/images/bookshelf.png
 image_position: 50% 50%
 card_style: image
 card_size: tall
