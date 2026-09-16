@@ -9,3 +9,7 @@ image_position: 50% 52%
 card_style: image
 card_size: standard
 ---
+
+### Tämän sivuston pohjat. Template for this page.
+
+https://github.com/NinaLista/card-page-template
