@@ -1,7 +1,7 @@
 ---
 title: "Digitaalinen kirjahylly"
 date: 2026-09-01
-tags: [Books, Translation, IT Skills, Coding, Experiments, Personal, Shipping]
+tags: [Books, Translation, IT Skills, Coding, Experiments, Personal, AI]
 short_text: "Oma kirjahylly digimuotoon. Teostiedot, kuvaukset, lajittelut. Yksi html-sivu."
 back_text: "Digikirjahyllyssä visuaalisesti kiinnostavana, käyttökelpoisena tietokantana omien kirjojen tiedot. Eri projekteja & toteutustapoja."
 image: /assets/images/bookshelf.png
