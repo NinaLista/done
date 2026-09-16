@@ -24,7 +24,8 @@ Tässä projektissa kokeilen erilaisia tapoja taltioida painetut kirjat ja niide
 
 Kirjahyllykuvat [H] → konenäkö / teosten tunnistus [AI] → ihmisen tekemä tarkistus [H] → metatietojen rikastus verkkolähteistä [AI] → normalisoitu Excel-master [AI] → HTML-koodin luonti [AI] [H] → täydennysvaiheessa: uusien kirjarivien lisäys master-tiedoston &  sivun generointi masterista [AI][H] → tarvittaessa käyttöliittymän ja toimintojen iteratiivinen muokkaus chatissa [AI][H].
 
-![digikirjahylly]({{ '/assets/images/bookshelf2.png' | relative_url }})
+*Erään digitaalisen kirjahyllyn näkymä. Kirjaa klikkaamalla avautuu kirjatietue. Kirjoja voi lajitella monin tavoin, kuten genren tai tekijän mukaan.*
+<img src="{{ '/assets/images/bookshelf2.png' | relative_url }}" alt="digikirjahylly" style="width:100%; height:auto; display:block;">
 
 **B) Google AI Studio + Firebase -työvuo**  
 
