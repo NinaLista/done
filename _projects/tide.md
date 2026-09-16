@@ -4,7 +4,7 @@ date: 2026-07-26
 tags: [Translation, IT skills, Tools, AI]
 short_text: "Kirjallisuuden kääntäminen ja tekoäly."
 back_text: "Tekoälyn käyttö ei supistu merkitykseen: käännä tämä."
-image: /assets/images/Tide2.png
+image: /assets/images/tide3.png
 image_position: 10% 52%
 card_style: image
 card_size: standard
