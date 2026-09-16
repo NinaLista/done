@@ -3,7 +3,7 @@ title: "Digitaalinen kirjahylly"
 date: 2026-09-01
 tags: [Books, Translation, IT Skills, Coding, Experiments, Personal, Shipping]
 short_text: "Oma kirjahylly digimuotoon. Teostiedot, kuvaukset, lajittelut. Yksi html-sivu."
-back_text: "Digikirjahyllyssä visuaalisesti miellyttävänä mutta käyttökelpoisena tietokantana omien kirjojen tiedot. Eri projekteja & toteutustapoja, esim. eri tavoin koottuja tietokantoja."
+back_text: "Digikirjahyllyssä visuaalisesti kiinnostavana, käyttökelpoisena tietokantana omien kirjojen tiedot. Eri projekteja & toteutustapoja."
 image: /assets/images/bookshelf.png
 image_position: 50% 50%
 card_style: image
@@ -17,7 +17,6 @@ Tässä projektissa kokeilen erilaisia tapoja taltioida painetut kirjat ja niide
 
 ### 1. Kuvapohjainen kirjasto (kirjat hyllyssä, ei valmista kirjalistaa)
 
-
 **A) Chat-pohjainen HTML-työvuo**  
 
 `Yksi HTML-sivu & Excel-tietokanta`  
@@ -26,7 +25,6 @@ Tässä projektissa kokeilen erilaisia tapoja taltioida painetut kirjat ja niide
 Kirjahyllykuvat [H] → konenäkö / teosten tunnistus [AI] → ihmisen tekemä tarkistus [H] → metatietojen rikastus verkkolähteistä [AI] → normalisoitu Excel-master [AI] → HTML-koodin luonti [AI] [H] → täydennysvaiheessa: uusien kirjarivien lisäys master-tiedoston &  sivun generointi masterista [AI][H] → tarvittaessa käyttöliittymän ja toimintojen iteratiivinen muokkaus chatissa [AI][H].
 
 ![digikirjahylly]({{ '/assets/images/bookshelf2.png' | relative_url }})
-
 
 **B) Google AI Studio + Firebase -työvuo**  
 
