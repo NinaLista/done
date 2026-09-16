@@ -5,7 +5,7 @@ tags: [Translation, IT skills, Tools, AI]
 short_text: "Kirjallisuuden kääntäminen ja tekoäly."
 back_text: "Tekoälyn käyttö ei supistu merkitykseen: käännä tämä."
 image: /assets/images/Tide2.png
-image_position: 46% 52%
+image_position: 10% 52%
 card_style: image
 card_size: standard
 external_url: "https://ninalista.github.io/tools/01-elementary-intro.html"
