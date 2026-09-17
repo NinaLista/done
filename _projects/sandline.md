@@ -2,8 +2,8 @@
 title: "Digitaalinen kirjahylly"
 date: 2026-09-01
 tags: [Books, Translation, IT Skills, Coding, Experiments, Personal, AI]
-short_text: "Oma kirjahylly digimuotoon. Teostiedot, kuvaukset, lajittelut. Yksi html-sivu."
-back_text: "Digikirjahyllyssä visuaalisesti kiinnostavana, käyttökelpoisena tietokantana omien kirjojen tiedot. Eri projekteja & toteutustapoja."
+short_text: "Oikeat kirjat digihyllyyn. Yksi html-sivu."
+back_text: "Kirjahyllyn valokuvista tai valmiista tietokannasta painetut kirjat digikirjahyllyyn. Visuaalisesti selailtava tietokanta. Eri projekteja & toteutustapoja."
 image: /assets/images/bookshelf.png
 image_position: 50% 50%
 card_style: image
@@ -11,7 +11,7 @@ card_size: tall
 ---
 ## Projektit: Digitaalinen kirjahylly
 
-Tässä projektissa kokeilen erilaisia tapoja taltioida painetut kirjat ja niiden teostiedot digitaaliseen visuaaliseen arkistoon. Samalla saan jatkokäyttöön hyödyllisen kirjatietokannan.
+Tässä projektissa kokeilen erilaisia tapoja saada painetut kirjat ja niiden teostiedot digitaaliseen visuaaliseen arkistoon. Samalla saan jatkokäyttöön hyödyllisen kirjatietokannan.
 
 <img src="{{ '/assets/images/bookshelfAI.png' | relative_url }}"
      alt="digikirjasto-workflow"
