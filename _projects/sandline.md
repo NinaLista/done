@@ -13,6 +13,10 @@ card_size: tall
 
 Tässä projektissa kokeilen erilaisia tapoja taltioida painetut kirjat ja niiden teostiedot digitaaliseen visuaaliseen arkistoon. Samalla saan jatkokäyttöön hyödyllisen kirjatietokannan.
 
+<img src="{{ '/assets/images/bookshelfAI.png' | relative_url }}"
+     alt="digikirjasto-workflow"
+     style="width:100%; height:auto; display:block;">
+     
 ## Toteutuksia
 
 ### 1. Kuvapohjainen kirjasto (kirjat hyllyssä, ei valmista kirjalistaa)
