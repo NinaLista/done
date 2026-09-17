@@ -1,12 +1,12 @@
 ---
-title: "Atelier"
+title: "Rautakausiretki"
 date: 2026-05-15
 tags: [Web, Design, Open Source]
-short_text: "A minimal website template for creative work."
-back_text: "A reusable page structure for small public experiments. It keeps content portable and presentation consistent while leaving room for each project to have its own visual identity."
-image: /assets/images/atelier.svg
-image_position: 50% 50%
+short_text: "Karttaretki historiaan"
+back_text: "Skrollattava GeoLibre-karttaretki Satakunnan maisemiin. Karttaa vierittämällä lentää viikinkiajan haudoilta linnavuorelle, raudanvalmistuksesta asuinpaikoille."
+image: /assets/images/rautakausiretki.svg
+image_position: 10% 50%
 card_style: image
 card_size: tall
-external_url: "https://example.com/"
+external_url: "https://ninalista.github.io/Rautakausiretki/"
 ---
