@@ -1,7 +1,7 @@
-title: "Studio Flux"
-description: "A visual catalogue of projects, experiments, and ideas."
+title: "1000 projektia"
+description: "Visuaalinen muistio projekteista, kokeiluista ja ideoista."
 tagline: "Ideas worth keeping."
-intro: "A visual catalogue of projects, experiments, prototypes, writing, and things still taking shape."
+intro: "Visuaalinen muistio projekteista, kokeiluista, muistiinpanoista ja asioista, jotka ehkä vielä hakevat muotoaan."
 markdown: kramdown
 
 collections:
