@@ -1,4 +1,5 @@
 ---
+layout: project-newspaper
 title: "Kōwa"
 date: 2026-06-22
 tags: [Design, Experiments]
