@@ -18,6 +18,7 @@ REPO/
 ├── _layouts/
 │   ├── default.html
 │   └── project.html
+│   └── project-newspaper.html
 │
 ├── _projects/
 │   ├── project-one.md
@@ -27,6 +28,7 @@ REPO/
 └── assets/
     ├── css/
     │   └── styles.css
+    │   └── project-newspaper.css
     ├── js/
     │   └── app.js
     └── images/
@@ -62,6 +64,7 @@ Structure
 
 ```yaml
 ---
+layout: [OPTIONAL, LEAVE OUT, IF NOT USING SPECIAL LAYOUT]
 title: "My New Project"
 date: 2026-09-10
 tags: [AI, Visual, Experiments]
@@ -101,6 +104,7 @@ This is the longer public-safe description.
 
 ## Card fields
 
+- `layout` — use this line only if open project -page should be a project-newspaper style page
 - `title` — project title.
 - `date` — used by Newest / Oldest sorting. Use `YYYY-MM-DD`.
 - `tags` — one project may have several tags; add tags as wished; filters for new tag items generated automatically onto the page.
