@@ -26,6 +26,10 @@ Tässä projektissa kokeilen erilaisia tapoja saada painetut kirjat ja niiden te
 `Yksi HTML-sivu & Excel-tietokanta`  
 `Teknologiat: multimodaalinen AI, verkkopohjainen metatietojen rikastus, Excel/CSV, itsenäinen HTML.`
 
+<img src="{{ '/assets/images/digital-bookshelf-workflow-2-AI.webp' | relative_url }}"
+     alt="digikirjasto-workflow-2"
+     style="width:100%; height:auto; display:block;">
+
 Kirjahyllykuvat [H] → konenäkö / teosten tunnistus [AI] → ihmisen tekemä tarkistus [H] → metatietojen rikastus verkkolähteistä [AI] → normalisoitu Excel-master [AI] → HTML-koodin luonti [AI] [H] → täydennysvaiheessa: uusien kirjarivien lisäys master-tiedoston &  sivun generointi masterista [AI][H] → tarvittaessa käyttöliittymän ja toimintojen iteratiivinen muokkaus chatissa [AI][H].
 
 *Erään digitaalisen kirjahyllyn näkymä. Kirjaa klikkaamalla avautuu kirjatietue. Kirjoja voi lajitella monin tavoin, kuten genren tai tekijän mukaan.*
