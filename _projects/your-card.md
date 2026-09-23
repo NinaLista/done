@@ -4,7 +4,7 @@ date: 2026-01-02
 tags: [Tools, Web App, Mobiili]
 short_text: "Kevyt selainpohjainen mobiililoki sanelujen tallentamiseen Google Sheetiin."
 back_text: "Rakenteinen lokityökalu tallentaa puhumani tekstin, aikaleiman, sijainnin, karttalinkin ja haluamani valokuvaliitteen Drive-linkkinä Google Sheetsin sarakkeisiin. 1 sanelu = 1 rivi."
-image: /assets/images/saneluloki.png
+image: /assets/images/saneluloki.webp
 image_position: 50% 50%
 card_style: image
 card_size: standard
