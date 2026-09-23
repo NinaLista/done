@@ -1,0 +1,80 @@
+---
+layout: default
+---
+<main class="newspaper-page">
+  <article class="newspaper-sheet">
+    <a class="newspaper-back newspaper-back--top" href="{{ '/' | relative_url }}">← Back to projects</a>
+
+    <header class="newspaper-header">
+      <div class="newspaper-folio" aria-label="Publication information">
+        <span>VOL. {{ page.newspaper_volume | default: '01' }}</span>
+        <strong class="newspaper-name">The Daily Project</strong>
+        <span>NO. {{ page.newspaper_issue | default: '001' }}</span>
+      </div>
+
+      <h1 class="newspaper-series">1000 PROJECTS</h1>
+
+      <div class="newspaper-strip">
+        <span>{{ page.newspaper_edition | default: 'THE TOO-MANY-GOOD-IDEAS EDITION' }}</span>
+        <span>{{ page.newspaper_archive | default: 'DEVELOPMENT ARCHIVE' }}</span>
+        <span>{{ page.newspaper_note | default: 'ONE THING LED TO ANOTHER' }}</span>
+      </div>
+
+      {% if page.date %}
+      <p class="newspaper-date">{{ page.date | date: "%d %B %Y" | upcase }}</p>
+      {% endif %}
+    </header>
+
+    <div class="newspaper-grid">
+      <section class="newspaper-story">
+        <p class="newspaper-kicker">{{ page.newspaper_kicker | default: 'From the workbench' }}</p>
+        <h2 class="newspaper-project-title">{{ page.title | escape }}</h2>
+        {% if page.back_text %}
+        <p class="newspaper-lead">{{ page.back_text | escape }}</p>
+        {% endif %}
+
+        <div class="newspaper-prose">
+          {{ content }}
+        </div>
+      </section>
+
+      <aside class="newspaper-sidebar">
+        {% if page.image %}
+        <figure class="newspaper-image">
+          <img src="{{ page.image | relative_url }}" alt="" style="object-position: {{ page.image_position | default: '50% 50%' }};">
+          <figcaption>{{ page.image_caption | default: page.title | escape }}</figcaption>
+        </figure>
+        {% endif %}
+
+        <section class="newspaper-file" aria-label="Project details">
+          <p class="newspaper-file__heading">Project file</p>
+          <dl>
+            {% if page.date %}
+            <div>
+              <dt>Date</dt>
+              <dd>{{ page.date | date: "%d %b %Y" }}</dd>
+            </div>
+            {% endif %}
+            {% if page.status %}
+            <div>
+              <dt>Status</dt>
+              <dd>{{ page.status | escape }}</dd>
+            </div>
+            {% endif %}
+          </dl>
+
+          {% if page.tags and page.tags.size > 0 %}
+          <div class="newspaper-tags" aria-label="Project tags">
+            {% for tag in page.tags %}<span>{{ tag | escape }}</span>{% endfor %}
+          </div>
+          {% endif %}
+        </section>
+      </aside>
+    </div>
+
+    <footer class="newspaper-footer">
+      <p>{{ page.newspaper_footer | default: 'CURIOSITY TODAY · ANOTHER PROJECT TOMORROW · 1000 PROJECTS AND COUNTING' }}</p>
+      <a class="newspaper-back" href="{{ '/' | relative_url }}">← Back to projects</a>
+    </footer>
+  </article>
+</main>
