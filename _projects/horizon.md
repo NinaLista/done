@@ -1,16 +1,23 @@
 ---
-title: "Horizon"
-date: 2026-09-08
-tags: [AI, Product, Design]
-short_text: "An AI co-pilot for thoughtful living and better decisions."
-back_text: "A small experiment in turning scattered signals into calmer decisions. It collects context, surfaces useful patterns, and keeps the interface deliberately quiet."
-image: /assets/images/horizon.svg
-image_position: 50% 48%
+title: "Taltioi nettitieto + linkki"
+date: 2026-01-01
+tags: [Tools, Design, Code, Writing, Translation]
+short_text: "Selainlaajennus verkkolähteiden dokumentointiin: valittu teksti ja sen lähde-URL kopioituvat yhdellä toiminnolla."
+back_text: "Pieni selainlaajennus (Chrome, Edge) vähentää nettilähteiden talteenotossa tarvittavia klikkauksia. Kopioitu tekstikatkelma nappaa mukaan alkuperäisen verkkosivun linkin."
+image: /assets/images/document-sources-2.webp
+image_position: 50% 50%
 card_style: image
 card_size: standard
 ---
-## About this project
+## Korosta, kopioi ja ota linkki mukaan
 
-Horizon is a placeholder for a project that is safe to describe publicly even when the underlying work is private.
+Highlight Tool on Chrome- ja Edge-selaimille tehty pieni selainlaajennus verkkolähteiden dokumentointiin.
 
-The Markdown page can contain a longer explanation, screenshots, decisions, lessons learned, or anything else you want to share without linking to the actual project.
+Työkalun tarkoitus on yksinkertainen: käyttäjä valitsee verkkosivulta tekstin, ja laajennus kopioi samalla kertaa sekä valitun tekstikatkelman että sivun URL-osoitteen. Tiedot kopioituvat siirron ajaksi leikepöydälle. Tuloksen voi liittää tuttuun tapaan suoraan esimerkiksi muistiinpanoihin, tutkimusmateriaaliin tai projektidokumentaatioon.
+
+Näin lähdeosoitetta ei tarvitse kopioida erikseen selaimen osoiteriviltä, ja tekstikatkelman yhteys alkuperäiseen verkkolähteeseen säilyy.
+
+### Toteutus
+
+Selainlaajennus on toteutettu JavaScriptillä Chrome- ja Edge-selaimille.
+Firefox-selaimeen oma versio.
