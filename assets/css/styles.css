@@ -73,7 +73,7 @@ button { font: inherit; }
 .project-card__front-copy { position: absolute; inset: auto 16px 15px; z-index: 3; }
 .project-card__front-copy h2 { margin: 0 0 5px; font: 650 clamp(1.02rem, 1.7vw, 1.48rem)/1.05 var(--serif); letter-spacing: -.025em; }
 .project-card__front-copy h2.handwritten-title { font-family: var(--hand); font-weight: 500; line-height: 1.02; letter-spacing: -.04em; }
-.project-card__front-copy p { margin: 0 0 11px; max-width: 24ch; font-size: clamp(.74rem, .95vw, .88rem); line-height: 1.35; color: rgba(255, 255, 255, .92); }
+.project-card__front-copy p { margin: 0 0 11px; max-width: 24ch; font-size: clamp(.82rem, .1vw, .96rem); line-height: 1.35; color: rgba(255, 255, 255, .92); }
 .project-card__front--type .project-card__front-copy p { color: rgba(32, 37, 34, .76); }
 .tag-list { display: flex; flex-wrap: wrap; gap: 5px; }
 .tag { padding: 3px 7px; font-size: .59rem; line-height: 1.15; background: rgba(255, 255, 255, .16); border-color: rgba(255, 255, 255, .22); color: inherit; }
@@ -93,13 +93,13 @@ button { font: inherit; }
 .project-card.is-flipped .project-card__back { visibility: visible; pointer-events: auto; }
 .project-card:not(.is-flipped) .project-card__back { transition: box-shadow .22s ease, visibility 0s linear .28s; }
 .project-card__back h2 { margin: 28px 0 11px; font: 600 clamp(1rem, 1.55vw, 1.35rem)/1.05 var(--serif); letter-spacing: -.025em; }
-.project-card__back-text { flex: 1 1 auto; min-height: 0; margin: 0; overflow-y: auto; font-size: clamp(.74rem, .95vw, .86rem); line-height: 1.5; color: #51544f; }
+.project-card__back-text { flex: 1 1 auto; min-height: 0; margin: 0; overflow-y: auto; font-size: clamp(.82rem, .1vw, .94rem); line-height: 1.5; color: #51544f; }
 .back-close { position: absolute; top: 11px; left: 11px; border: 0; border-radius: 999px; background: transparent; color: #6d706a; padding: 6px; cursor: pointer; font-size: 1rem; line-height: 1; }
 .back-close:focus-visible, .open-project:focus-visible { outline: 2px solid rgba(32, 37, 34, .45); outline-offset: 3px; }
 .project-card__back-bottom { position: relative; margin-top: auto; padding: 14px 0 24px; }
 .tag-list--back { margin-bottom: 0; }
 .tag-list--back .tag, .tag-list--article .tag { color: #646761; background: #f5f0e9; border-color: #e5ded4; }
-.open-project { position: absolute; inset: 0; display: flex; align-items: flex-end; padding-bottom: 2px; font-size: .72rem; font-weight: 650; text-decoration: underline; text-underline-offset: 3px; }
+.open-project { position: absolute; inset: 0; display: flex; align-items: flex-end; padding-bottom: 2px; font-size: .86rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; text-decoration: underline; text-underline-offset: 3px; }
 
 .project-page { width: min(820px, 100%); margin: 0 auto; padding: 32px clamp(18px, 4vw, 48px) 72px; }
 .back-link { display: inline-flex; align-items: center; min-height: 44px; margin-bottom: 24px; text-decoration: none; color: var(--muted); font-size: .95rem; font-weight: 600; }
@@ -132,7 +132,7 @@ button { font: inherit; }
   .project-card-wrap { margin-bottom: 12px; }
   .project-card__front-copy { inset: auto 11px 11px; }
   .project-card__front-copy h2 { font-size: clamp(.92rem, 4vw, 1.15rem); }
-  .project-card__front-copy p { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: .76rem; }
+  .project-card__front-copy p { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: .82rem; }
   .tag-list--front { gap: 3px; }
   .tag-list--front .tag { padding: 2px 5px; font-size: .52rem; }
   .project-card__back { padding: 12px; }
@@ -140,7 +140,7 @@ button { font: inherit; }
   .project-card__back-text { font-size: .76rem; }
   .tag-list--back { gap: 3px; margin-bottom: 0; }
   .tag-list--back .tag { padding: 2px 5px; font-size: .5rem; }
-  .open-project { font-size: .66rem; }
+  .open-project { font-size: .78rem; }
   .handwritten-note { font-size: .92rem; top: 13px; left: 12px; }
   .flip-trigger::after { display: block; }
 }
