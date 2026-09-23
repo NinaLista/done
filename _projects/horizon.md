@@ -5,7 +5,7 @@ tags: [Tools, Design, Code, Writing, Translation]
 short_text: "Selainlaajennus verkkolähteiden dokumentointiin: valittu teksti ja sen lähde-URL kopioituvat yhdellä toiminnolla."
 back_text: "Pieni selainlaajennus (Chrome, Edge) vähentää nettilähteiden talteenotossa tarvittavia klikkauksia. Kopioitu tekstikatkelma nappaa mukaan alkuperäisen verkkosivun linkin."
 image: /assets/images/document-sources-2.webp
-image_position: 50% 50%
+image_position: 0% 50%
 card_style: image
 card_size: standard
 ---
