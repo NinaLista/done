@@ -9,10 +9,10 @@ image_position: 50% 50%
 card_style: image
 card_size: tall
 ---
-## Projektit: Digitaalinen kirjahylly
+## Digitaalinen kirjahylly 
 
-Tässä projektissa kokeilen erilaisia tapoja saada painetut kirjat ja niiden teostiedot digitaaliseen visuaaliseen arkistoon. Samalla saan jatkokäyttöön hyödyllisen kirjatietokannan.
-Yllä olevassa kuvassa on erään digitaalisen kirjahyllyn näkymä. Kirjaa klikkaamalla avautuu kirjatietue. Kirjoja voi lajitella monin tavoin, kuten genren tai tekijän mukaan.
+Tässä projektissa kokeilen erilaisia tapoja saada painetut kirjat teostietoineen digitaaliseen visuaaliseen arkistoon. Samalla saan jatkokäyttöön hyödyllisen kirjatietokannan.
+Yllä olevassa kuvassa on osittainen kuva yhdestä digitaalisesta kirjahyllystä. Kirjastoa selaan offline-tilassa omassa selaimessa, ja aktiivisessa kirjastossa kirjaa klikkaamalla kirja ponnahtaa esiin ja avautuu tarkempia tietoja sisältävä kirjatietue. Kirjoja voi lajitella monin tavoin, kuten genren tai tekijän mukaan. 
 
 <img src="{{ '/assets/images/bookshelfAI.png' | relative_url }}"
      alt="digikirjasto-workflow"
