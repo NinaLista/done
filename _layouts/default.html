@@ -7,6 +7,11 @@
   <meta name="description" content="{{ page.description | default: site.description | escape }}">
   <title>{% if page.title %}{{ page.title | escape }} · {% endif %}{{ site.title | escape }}</title>
   <link rel="stylesheet" href="{{ '/assets/css/styles.css' | relative_url }}">
+
+  {% if page.layout == 'project-newspaper' %}
+  <link rel="stylesheet" href="{{ '/assets/css/project-newspaper.css' | relative_url }}">
+  {% endif %}
+  
 </head>
 <body>
   {{ content }}
