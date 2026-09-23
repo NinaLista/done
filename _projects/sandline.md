@@ -3,8 +3,8 @@ title: "Digitaalinen kirjahylly"
 date: 2026-09-01
 tags: [Books, Translation, IT Skills, Coding, Experiments, Personal, AI]
 short_text: "Oikeat kirjat digihyllyyn. Yksi html-sivu."
-back_text: "Kirjahyllyn valokuvista tai valmiista tietokannasta painetut kirjat digikirjahyllyyn. Visuaalisesti selailtava tietokanta. Eri projekteja & toteutustapoja."
-image: /assets/images/bookshelf.png
+back_text: "Tein kirjahyllyssä valokuvatuista kirjoista selailtavan digikirjahyllyn. Toiseen hain kirjatiedot valmiista elektronisesta kirjatietokannasta."
+image: /assets/images/bookshelf2.png
 image_position: 50% 50%
 card_style: image
 card_size: tall
@@ -12,6 +12,7 @@ card_size: tall
 ## Projektit: Digitaalinen kirjahylly
 
 Tässä projektissa kokeilen erilaisia tapoja saada painetut kirjat ja niiden teostiedot digitaaliseen visuaaliseen arkistoon. Samalla saan jatkokäyttöön hyödyllisen kirjatietokannan.
+Yllä olevassa kuvassa on erään digitaalisen kirjahyllyn näkymä. Kirjaa klikkaamalla avautuu kirjatietue. Kirjoja voi lajitella monin tavoin, kuten genren tai tekijän mukaan.
 
 <img src="{{ '/assets/images/bookshelfAI.png' | relative_url }}"
      alt="digikirjasto-workflow"
@@ -31,12 +32,7 @@ Tässä projektissa kokeilen erilaisia tapoja saada painetut kirjat ja niiden te
      style="width:100%; height:auto; display:block;">
 
 Kirjahyllykuvat [H] → konenäkö / teosten tunnistus [AI] → ihmisen tekemä tarkistus [H] → metatietojen rikastus verkkolähteistä [AI] → normalisoitu Excel-master [AI] → HTML-koodin luonti [AI] [H] → täydennysvaiheessa: uusien kirjarivien lisäys master-tiedoston &  sivun generointi masterista [AI][H] → tarvittaessa käyttöliittymän ja toimintojen iteratiivinen muokkaus chatissa [AI][H].
-
-*Erään digitaalisen kirjahyllyn näkymä. Kirjaa klikkaamalla avautuu kirjatietue. Kirjoja voi lajitella monin tavoin, kuten genren tai tekijän mukaan.*
-<img src="{{ '/assets/images/bookshelf2.png' | relative_url }}"
-     alt="digikirjahylly"
-     style="width:100%; height:auto; display:block;">
-     
+    
 **B) Google AI Studio + Firebase -työvuo**  
 
 `Yksi verkkosivusto & Firebase-tietokanta`  
