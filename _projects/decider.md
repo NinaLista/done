@@ -1,8 +1,8 @@
 ---
 title: "The Decider"
 date: 2026-01-05
-tags: [Tools, Mobile, App, Vibe]
-short_text: "Hauska ratkaisija puhelimessa."
+tags: [Tools, Mobile, App, Vibe, J]
+short_text: "(J) Hauska ratkaisija puhelimessa."
 back_text: "Kaikki painavat yhden sormenpään näytölle. The Decider arpoo, kuka saa, joutuu tai mitä sitten ollaankaan valitsemassa. Päätöksestä ei voi valittaa."
 image: /assets/images/decider.webp
 image_position: 50% 50%
