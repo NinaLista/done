@@ -3,7 +3,7 @@ title: "Tiira"
 date: 2025-08-01
 tags: [Data, Coding, Animals]
 short_text: "Lintuhavaintoja, korpuksia ja datan smoketest."
-back_text: "Harjoittelin korpus- ja muilla menetelmillä Oulun yliopiston lintujen maastolajituntemuksen kurssin (2025) havaintotekstejä. Aineisto pikkuine, siksi tulokset lähinnä viihteellisiä."
+back_text: "Harjoittelin korpus- ja muilla menetelmiä, datana Oulun yliopiston lintujen maastolajituntemuksen kurssin (2025) lintuhavaintotekstini Tiira-tietokannasta. Aineisto pikkuine, siksi tulokset lähinnä viihteellisiä."
 image: /assets/images/tiira.webp
 image_position: 50% 50%
 card_style: image
