@@ -6,7 +6,7 @@ tags: ["IT skills", "Coding", "3D"]
 short_text: "Surffaa muinaismaisemassa ja säädä vedenkorkeutta"
 back_text: "Interaktiivinen selainpohjainen 3D-visualisointi todellisesta karttadatasta. Maastoa voi tutkia, ja voi kokeilla vedenkorkeuden vaikutusta maisemaan."
 image: /assets/images/maisema-datasta-2.webp
-image_position: 50% 0%
+image_position: 100% 0%
 card_style: image
 card_size: standard
 handwritten_note: "Säädä vedenkorkeutta!"
