@@ -1,5 +1,4 @@
 ---
-layout: 
 title: "Maisema datasta 2"
 date: 2026-01-09
 tags: ["IT skills", "Coding", "3D"]
