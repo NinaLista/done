@@ -1,4 +1,5 @@
 ---
+layout: project-newspaper
 title: "Maisema datasta 2"
 date: 2026-01-09
 tags: ["IT skills", "Coding", "3D"]
@@ -13,7 +14,7 @@ handwritten_note: "Säädä vedenkorkeutta!"
 
 Interaktiivinen 3D-rantamaisema aidoista karttapohjista, jonka vedenkorkeutta voi säätää 
 
-![Muinaisen merenpinnan korkeuden säätely](/assets/images/datakartta2.webp)
+![Muinaisen merenpinnan korkeuden säätely]({{ '/assets/images/datakartta2.webp' | relative_url }})
 
 [Avaa interaktiivinen 3D-maisema](https://silly-eclair-280602.netlify.app/)
 
