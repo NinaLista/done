@@ -1,0 +1,2396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:;">
+  <title>Lake Vostok — 5,000 m Antarctic Cross-Section</title>
+  <style>
+    /* ==========================================================================
+       DESIGN TOKENS & RESET (100% Standalone — Zero External Requests)
+       ========================================================================== */
+    :root {
+      --bg-void: #030812;
+      --panel-bg: rgba(6, 14, 27, 0.84);
+      --panel-bg-strong: rgba(4, 10, 20, 0.92);
+      --panel-border: rgba(125, 211, 252, 0.22);
+      --panel-border-strong: rgba(125, 211, 252, 0.42);
+      --text-main: #e8f3ff;
+      --text-muted: #95b5d4;
+      --accent-ice: #7dd3fc;
+      --accent-water: #22d3ee;
+      --accent-heat: #fb923c;
+      --accent-sediment: #d6b37c;
+      --accent-ok: #34d399;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --hud-h: 62px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--bg-void);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.62;
+      overflow-x: hidden;
+    }
+
+    body {
+      background: var(--bg-void);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ==========================================================================
+       FULLSCREEN LIVE GEOLOGICAL CROSS-SECTION CANVAS
+       ========================================================================== */
+    #cross-section {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      display: block;
+      pointer-events: none;
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 45%, transparent 38%, rgba(2, 6, 14, 0.48) 100%);
+    }
+
+    /* ==========================================================================
+       TOP FIXED SCIENTIFIC TELEMETRY HUD
+       ========================================================================== */
+    header.hud {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 40;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px 16px;
+      padding: 9px 18px;
+      background: var(--panel-bg-strong);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--panel-border);
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    .hud-site {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .hud-site .coords {
+      color: var(--accent-ice);
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+
+    .hud-site .zone-label {
+      color: var(--text-muted);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+
+    .hud-right {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px 16px;
+    }
+
+    .hud-metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 18px;
+      align-items: center;
+    }
+
+    .metric {
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid rgba(125, 211, 252, 0.16);
+      padding-left: 10px;
+    }
+
+    .metric-label {
+      font-size: 9.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      line-height: 1.2;
+    }
+
+    .metric-value {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #ffffff;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .hud-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hud-btn {
+      background: rgba(56, 189, 248, 0.14);
+      color: var(--accent-ice);
+      border: 1px solid rgba(125, 211, 252, 0.38);
+      border-radius: 7px;
+      padding: 6px 11px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, border-color 0.15s, transform 0.15s;
+    }
+
+    .hud-btn:hover,
+    .hud-btn:focus-visible {
+      background: rgba(56, 189, 248, 0.28);
+      border-color: var(--accent-ice);
+      outline: none;
+      transform: translateY(-1px);
+    }
+
+    .mobile-drawer-btn {
+      display: none;
+      background: rgba(34, 211, 238, 0.16);
+      color: #cffafe;
+      border-color: rgba(34, 211, 238, 0.45);
+    }
+
+    /* Slim Mobile Live Depth Progress Rail (visible <= 1080px) */
+    .mobile-progress-rail {
+      display: none;
+      position: fixed;
+      top: 0; /* positioned via JS right below HUD */
+      left: 0;
+      right: 0;
+      height: 5px;
+      z-index: 39;
+      background: rgba(4, 12, 24, 0.72);
+      border-bottom: 1px solid rgba(125, 211, 252, 0.16);
+      pointer-events: none;
+    }
+
+    .mobile-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #bae6fd 0%, #38bdf8 55%, #22d3ee 78%, #d6b37c 92%, #fb923c 100%);
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.8);
+      transition: width 0.06s linear;
+    }
+
+    /* ==========================================================================
+       FANTASTIC ILLUSTRATED SIDE CROSS-SECTION MINI-MAP (DESKTOP PINNED + MOBILE DRAWER)
+       ========================================================================== */
+    aside.xsec-panel {
+      position: fixed;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 30;
+      width: 198px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border-strong);
+      border-radius: 14px;
+      padding: 10px 10px 9px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .xsec-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 7px;
+      font-family: var(--font-mono);
+    }
+
+    .xsec-title {
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-ice);
+    }
+
+    .xsec-hint {
+      font-size: 9.5px;
+      color: var(--text-muted);
+    }
+
+    .drawer-close-btn {
+      display: none;
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 5px;
+      padding: 2px 7px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      cursor: pointer;
+    }
+
+    .xsec-stage {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 185 / 360;
+      border-radius: 9px;
+      overflow: hidden;
+      border: 1px solid rgba(125, 211, 252, 0.28);
+      background: #040c1a;
+      cursor: ns-resize;
+      touch-action: none;
+    }
+
+    .xsec-stage svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Live glowing horizontal Depth Scanner Line */
+    .scanner-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 6.67%;
+      height: 2px;
+      background: #ffffff;
+      box-shadow: 0 0 10px #38bdf8, 0 0 4px #ffffff;
+      pointer-events: none;
+      transform: translateY(-1px);
+    }
+
+    .scanner-pill {
+      position: absolute;
+      right: 4px;
+      top: -17px;
+      background: rgba(224, 242, 254, 0.96);
+      color: #041120;
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-variant-numeric: tabular-nums;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+      white-space: nowrap;
+    }
+
+    .xsec-footer {
+      margin-top: 7px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      color: var(--text-muted);
+    }
+
+    .xsec-phase {
+      color: var(--accent-ice);
+      font-weight: 700;
+    }
+
+    /* SVG subtle animations inside cross-section illustration */
+    @keyframes blinkRed {
+      0%, 48% { opacity: 1; }
+      52%, 100% { opacity: 0.18; }
+    }
+    @keyframes pulseHeat {
+      0%, 100% { opacity: 0.45; }
+      50% { opacity: 0.95; }
+    }
+    @keyframes dashFlow {
+      to { stroke-dashoffset: -18; }
+    }
+    .svg-beacon { animation: blinkRed 1.8s infinite; }
+    .svg-heat-vein { animation: pulseHeat 2.6s ease-in-out infinite; }
+    .svg-convect { animation: dashFlow 3.4s linear infinite; }
+
+    /* ==========================================================================
+       RIGHT HORIZON BOOKMARKS (DESKTOP)
+       ========================================================================== */
+    nav.bookmarks {
+      position: fixed;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 30;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .bookmark-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-align: right;
+      cursor: pointer;
+      padding: 5px 8px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .bookmark-btn:hover,
+    .bookmark-btn.active {
+      color: #ffffff;
+      background: rgba(125, 211, 252, 0.18);
+    }
+
+    .bookmark-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.65;
+    }
+
+    .bookmark-btn.active .bookmark-dot {
+      opacity: 1;
+      box-shadow: 0 0 8px var(--accent-ice);
+    }
+
+    /* ==========================================================================
+       OPENING VISUAL STAGE (UNOBSTRUCTED CROSS-SECTION FIRST)
+       ========================================================================== */
+    .opening-stage {
+      position: relative;
+      z-index: 5;
+      min-height: 76vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      text-align: center;
+      padding: 96px 24px 36px;
+      pointer-events: none;
+    }
+
+    .opening-kicker {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #e0f2fe;
+      background: rgba(4, 14, 28, 0.62);
+      border: 1px solid rgba(125, 211, 252, 0.35);
+      padding: 5px 14px;
+      border-radius: 999px;
+      backdrop-filter: blur(8px);
+    }
+
+    .opening-title-wrap {
+      max-width: 680px;
+      margin-top: auto;
+      margin-bottom: 18px;
+      padding: 16px 22px;
+      border-radius: 14px;
+      background: rgba(4, 12, 24, 0.56);
+      border: 1px solid rgba(125, 211, 252, 0.22);
+      backdrop-filter: blur(8px);
+    }
+
+    .opening-title-wrap h1 {
+      font-size: clamp(26px, 4.2vw, 40px);
+      line-height: 1.15;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+      text-shadow: 0 2px 16px rgba(0, 0, 0, 0.6);
+    }
+
+    .opening-title-wrap p {
+      font-size: 14.5px;
+      color: #d6eafc;
+      margin-bottom: 0;
+    }
+
+    .opening-cue {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-ice);
+      background: rgba(4, 12, 24, 0.72);
+      border: 1px solid rgba(125, 211, 252, 0.34);
+      padding: 7px 14px;
+      border-radius: 999px;
+      letter-spacing: 0.04em;
+    }
+
+    /* ==========================================================================
+       MOBILE-FIRST INLINE CROSS-SECTION OVERVIEW CARD (VISIBLE <= 1080px)
+       ========================================================================== */
+    .mobile-xsec-card {
+      display: none;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border-strong);
+      border-radius: 16px;
+      padding: 16px 16px 14px;
+      margin-bottom: 24px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .mobile-xsec-layout {
+      display: grid;
+      grid-template-columns: 165px 1fr;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .mobile-xsec-info h2 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .mobile-xsec-info p {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .mobile-quick-jumps {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .quick-jump-btn {
+      background: rgba(56, 189, 248, 0.14);
+      color: #e0f2fe;
+      border: 1px solid rgba(125, 211, 252, 0.3);
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      cursor: pointer;
+    }
+
+    .quick-jump-btn:hover {
+      background: rgba(56, 189, 248, 0.28);
+    }
+
+    /* ==========================================================================
+       MAIN SCROLLING NARRATIVE TRACK
+       ========================================================================== */
+    main#scroll-track {
+      position: relative;
+      z-index: 5;
+      width: 100%;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 165px 140px 232px;
+    }
+
+    .layer-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 28px 30px;
+      margin-bottom: 46vh;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.48);
+    }
+
+    .layer-card:last-child {
+      margin-bottom: 10vh;
+    }
+
+    .layer-card.hero {
+      border-color: rgba(186, 230, 253, 0.38);
+    }
+
+    .layer-card.water-zone {
+      border-color: rgba(34, 211, 238, 0.38);
+    }
+
+    .layer-card.sediment-zone {
+      border-color: rgba(214, 179, 124, 0.42);
+    }
+
+    .layer-card.bedrock-zone {
+      border-color: rgba(251, 146, 60, 0.45);
+    }
+
+    .depth-tag {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-ice);
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 3px 10px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+
+    .water-zone .depth-tag {
+      color: var(--accent-water);
+      background: rgba(34, 211, 238, 0.12);
+      border-color: rgba(34, 211, 238, 0.35);
+    }
+
+    .sediment-zone .depth-tag {
+      color: var(--accent-sediment);
+      background: rgba(214, 179, 124, 0.12);
+      border-color: rgba(214, 179, 124, 0.35);
+    }
+
+    .bedrock-zone .depth-tag {
+      color: var(--accent-heat);
+      background: rgba(251, 146, 60, 0.12);
+      border-color: rgba(251, 146, 60, 0.38);
+    }
+
+    h2 {
+      font-size: clamp(21px, 2.8vw, 27px);
+      line-height: 1.24;
+      margin-bottom: 12px;
+      color: #ffffff;
+    }
+
+    p {
+      margin-bottom: 14px;
+      color: var(--text-main);
+      font-size: 15.8px;
+    }
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+
+    .fact-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .fact-box {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 11px 13px;
+    }
+
+    .fact-box .f-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+
+    .fact-box .f-val {
+      font-size: 15.5px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    /* Small subscript citation buttons */
+    .cite-btn {
+      display: inline;
+      background: none;
+      border: none;
+      padding: 0 1px;
+      margin: 0;
+      color: var(--accent-ice);
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      cursor: pointer;
+      line-height: 1;
+      vertical-align: baseline;
+    }
+
+    .cite-btn sub {
+      font-size: 0.78em;
+      vertical-align: sub;
+      font-weight: 700;
+      padding: 0 3px;
+      border-radius: 3px;
+      background: rgba(125, 211, 252, 0.16);
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .cite-btn:hover sub,
+    .cite-btn:focus-visible sub {
+      background: rgba(125, 211, 252, 0.38);
+      color: #ffffff;
+      outline: none;
+    }
+
+    /* ==========================================================================
+       INTERACTIVE "TEST THE PHYSICS" SIMULATOR
+       ========================================================================== */
+    .sim-box {
+      margin-top: 20px;
+      padding: 18px;
+      border-radius: 12px;
+      background: rgba(2, 8, 18, 0.74);
+      border: 1px solid rgba(251, 146, 60, 0.36);
+    }
+
+    .sim-title {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent-heat);
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .sim-toggles {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .sim-toggle {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .sim-toggle input {
+      margin-top: 3px;
+      accent-color: var(--accent-heat);
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .sim-toggle strong {
+      display: block;
+      font-size: 13px;
+      color: #ffffff;
+    }
+
+    .sim-toggle span {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .sim-result {
+      padding: 14px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      border: 1px solid rgba(52, 211, 153, 0.45);
+      background: rgba(52, 211, 153, 0.12);
+      color: #ffffff;
+    }
+
+    .sim-result.frozen {
+      border-color: rgba(148, 163, 184, 0.45);
+      background: rgba(148, 163, 184, 0.15);
+    }
+
+    .sim-result strong {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .model-note {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--text-muted);
+    }
+
+    /* ==========================================================================
+       SEPARATE OPENABLE PEER-REVIEWED SOURCES MODAL
+       ========================================================================== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(2, 6, 14, 0.8);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .sources-box {
+      width: 100%;
+      max-width: 780px;
+      max-height: 86vh;
+      background: #081324;
+      border: 1px solid rgba(125, 211, 252, 0.4);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.75);
+    }
+
+    .sources-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--panel-border);
+      background: rgba(125, 211, 252, 0.06);
+    }
+
+    .sources-header h3 {
+      font-size: 17px;
+      color: #ffffff;
+    }
+
+    .sources-header p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin: 2px 0 0;
+    }
+
+    .close-btn {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .close-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .sources-list {
+      overflow-y: auto;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+      list-style: none;
+    }
+
+    .source-item {
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      font-size: 13.5px;
+      line-height: 1.5;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .source-item.highlight {
+      border-color: var(--accent-ice);
+      background: rgba(56, 189, 248, 0.16);
+    }
+
+    .source-num {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--accent-ice);
+      margin-right: 6px;
+    }
+
+    .source-doi-row {
+      margin-top: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .source-doi {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: #bae6fd;
+      background: rgba(0, 0, 0, 0.38);
+      padding: 2px 7px;
+      border-radius: 5px;
+      user-select: all;
+      word-break: break-all;
+    }
+
+    .copy-doi-btn {
+      background: rgba(125, 211, 252, 0.12);
+      color: var(--accent-ice);
+      border: 1px solid rgba(125, 211, 252, 0.32);
+      border-radius: 5px;
+      padding: 2px 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .copy-doi-btn:hover {
+      background: rgba(125, 211, 252, 0.28);
+    }
+
+    /* ==========================================================================
+       RESPONSIVE MOBILE & TABLET LAYOUT (<= 1080px)
+       ========================================================================== */
+    @media (max-width: 1080px) {
+      nav.bookmarks {
+        display: none;
+      }
+
+      .mobile-drawer-btn {
+        display: inline-block;
+      }
+
+      .mobile-progress-rail {
+        display: block;
+      }
+
+      .mobile-xsec-card {
+        display: block;
+      }
+
+      /* Left panel transforms into an on-demand interactive slide-in drawer */
+      aside.xsec-panel {
+        left: 12px;
+        top: 52%;
+        width: 215px;
+        transform: translate(-130%, -50%);
+        transition: transform 0.24s ease;
+        z-index: 50;
+      }
+
+      aside.xsec-panel.drawer-open {
+        transform: translate(0, -50%);
+      }
+
+      .drawer-close-btn {
+        display: inline-block;
+      }
+
+      .opening-stage {
+        min-height: 54vh;
+        padding: 116px 16px 24px;
+      }
+
+      main#scroll-track {
+        max-width: 720px;
+        padding: 0 16px 120px;
+      }
+
+      .layer-card {
+        margin-bottom: 34vh;
+      }
+    }
+
+    @media (max-width: 640px) {
+      header.hud {
+        padding: 8px 12px;
+        gap: 6px 10px;
+      }
+
+      .hud-metrics {
+        gap: 8px 10px;
+      }
+
+      .metric {
+        padding-left: 7px;
+      }
+
+      .metric-value {
+        font-size: 12px;
+      }
+
+      .layer-card {
+        padding: 20px 18px;
+      }
+
+      .mobile-xsec-layout {
+        grid-template-columns: 142px 1fr;
+        gap: 12px;
+      }
+    }
+
+    @media (max-width: 440px) {
+      .mobile-xsec-layout {
+        grid-template-columns: 1fr;
+      }
+      .mobile-xsec-layout .xsec-stage {
+        max-width: 210px;
+        margin: 0 auto;
+      }
+    }
+
+    /* ==========================================================================
+       ACCESSIBILITY: REDUCED MOTION SUPPORT
+       ========================================================================== */
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+      .svg-beacon,
+      .svg-heat-vein,
+      .svg-convect {
+        animation: none !important;
+      }
+      .mobile-progress-fill,
+      aside.xsec-panel,
+      .hud-btn,
+      .bookmark-btn,
+      .source-item {
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- FULLSCREEN LIVE GEOLOGICAL CROSS-SECTION CANVAS -->
+  <canvas id="cross-section" aria-hidden="true"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <!-- TOP FIXED SCIENTIFIC TELEMETRY HUD -->
+  <header class="hud" id="hud-bar" role="region" aria-label="Lake Vostok Live Cross-Section Telemetry">
+    <div class="hud-site">
+      <span class="coords">LAKE VOSTOK // 77°30′S 106°00′E</span>
+      <span class="zone-label" id="hud-zone">SURFACE SNOW · VOSTOK STATION</span>
+    </div>
+
+    <div class="hud-right">
+      <div class="hud-metrics" aria-live="polite">
+        <div class="metric">
+          <span class="metric-label">Depth</span>
+          <span class="metric-value" id="hud-depth">0 m</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Elevation</span>
+          <span class="metric-value" id="hud-elev">+3,488 m</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Pressure</span>
+          <span class="metric-value" id="hud-press">0.1 MPa</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Temp</span>
+          <span class="metric-value" id="hud-temp">−55.0°C</span>
+        </div>
+      </div>
+
+      <div class="hud-actions">
+        <button type="button" class="hud-btn mobile-drawer-btn" id="toggle-xsec-drawer" aria-expanded="false" aria-controls="desktop-xsec-panel">
+          Cross-Section
+        </button>
+        <button type="button" class="hud-btn" id="open-sources-hud" aria-haspopup="dialog">
+          Sources (12)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- SLIM MOBILE LIVE DEPTH PROGRESS RAIL -->
+  <div class="mobile-progress-rail" id="mobile-progress-rail" aria-hidden="true">
+    <div class="mobile-progress-fill" id="mobile-progress-fill"></div>
+  </div>
+
+  <!-- FANTASTIC ILLUSTRATED SIDE CROSS-SECTION MINI-MAP (DESKTOP PINNED / MOBILE DRAWER) -->
+  <aside class="xsec-panel" id="desktop-xsec-panel" aria-label="Interactive 5,000 meter Lake Vostok cross-section map">
+    <div class="xsec-header">
+      <span class="xsec-title">Poikkileikkaus</span>
+      <span class="xsec-hint">Click / Drag</span>
+      <button type="button" class="drawer-close-btn" id="close-xsec-drawer" aria-label="Close cross-section drawer">✕</button>
+    </div>
+
+    <div class="xsec-stage" data-scrubber="true" role="slider" tabindex="0"
+         aria-label="Scroll depth along 5,000 meter Lake Vostok geological cross-section"
+         aria-valuemin="0" aria-valuemax="5000" aria-valuenow="0">
+      <!-- Populated identically by JS with the high-detail 2D cross-section SVG -->
+      <div class="xsec-svg-host"></div>
+      <div class="scanner-line" data-scanner-line="true">
+        <span class="scanner-pill" data-scanner-pill="true">0 m</span>
+      </div>
+    </div>
+
+    <div class="xsec-footer">
+      <span>0–5,000 m</span>
+      <span class="xsec-phase" id="xsec-phase">SOLID SNOW</span>
+    </div>
+  </aside>
+
+  <!-- RIGHT HORIZON BOOKMARKS (DESKTOP) -->
+  <nav class="bookmarks" aria-label="Geological horizon bookmarks">
+    <button type="button" class="bookmark-btn active" data-target="sec-surface"><span>Surface</span><i class="bookmark-dot"></i></button>
+    <button type="button" class="bookmark-btn" data-target="sec-firn"><span>Firn &amp; Air</span><i class="bookmark-dot"></i></button>
+    <button type="button" class="bookmark-btn" data-target="sec-archive"><span>Ice Archive</span><i class="bookmark-dot"></i></button>
+    <button type="button" class="bookmark-btn" data-target="sec-accretion"><span>Lake Ice</span><i class="bookmark-dot"></i></button>
+    <button type="button" class="bookmark-btn" data-target="sec-ceiling"><span>Ice Ceiling</span><i class="bookmark-dot"></i></button>
+    <button type="button" class="bookmark-btn" data-target="sec-water"><span>Lake Water</span><i class="bookmark-dot"></i></button>
+    <button type="button" class="bookmark-btn" data-target="sec-sediment"><span>Sediments</span><i class="bookmark-dot"></i></button>
+    <button type="button" class="bookmark-btn" data-target="sec-bedrock"><span>Bedrock</span><i class="bookmark-dot"></i></button>
+  </nav>
+
+  <!-- UNOBSTRUCTED OPENING CROSS-SECTION VIEWPORT STAGE -->
+  <section class="opening-stage" aria-label="Lake Vostok surface view">
+    <span class="opening-kicker">East Antarctic Plateau · 5,000 m Vertical Cross-Section</span>
+    <div class="opening-title-wrap">
+      <h1>Lake Vostok: Straight Down Through 4 km of Ice</h1>
+      <p>From Vostok Station and Borehole 5G at 0 m to the fractured geothermal rift bedrock 5,000 m below.</p>
+    </div>
+    <div class="opening-cue">↓ Scroll to descend through the cross-section</div>
+  </section>
+
+  <!-- MAIN SCROLLING GEOLOGICAL DESCENT -->
+  <main id="scroll-track">
+
+    <!-- MOBILE-FIRST ILLUSTRATED CROSS-SECTION OVERVIEW CARD (<= 1080px) -->
+    <section class="mobile-xsec-card" aria-label="Interactive Lake Vostok cross-section overview">
+      <div class="mobile-xsec-layout">
+        <div class="xsec-stage" data-scrubber="true" role="slider" tabindex="0"
+             aria-label="Interactive cross-section depth scrubber"
+             aria-valuemin="0" aria-valuemax="5000" aria-valuenow="0">
+          <div class="xsec-svg-host"></div>
+          <div class="scanner-line" data-scanner-line="true">
+            <span class="scanner-pill" data-scanner-pill="true">0 m</span>
+          </div>
+        </div>
+        <div class="mobile-xsec-info">
+          <span class="depth-tag">0 – 5,000 m Cross-Section</span>
+          <h2>The Full Slice of Antarctica</h2>
+          <p>Tap or drag anywhere on the cross-section to jump straight to that layer, or use the <strong>Cross-Section</strong> button in the top bar anytime while scrolling.</p>
+          <div class="mobile-quick-jumps">
+            <button type="button" class="quick-jump-btn" data-jump="sec-archive">Ice Core</button>
+            <button type="button" class="quick-jump-btn" data-jump="sec-ceiling">3,769 m Ceiling</button>
+            <button type="button" class="quick-jump-btn" data-jump="sec-water">Lake Water</button>
+            <button type="button" class="quick-jump-btn" data-jump="sec-bedrock">Bedrock Physics</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. SURFACE: 0 m -->
+    <section class="layer-card hero" id="sec-surface" data-depth="0">
+      <span class="depth-tag">0 m Depth · +3,488 m Elevation · Polar Desert</span>
+      <h2>Standing on the Coldest Place Ever Measured</h2>
+      <p>
+        You are standing at Vostok Station on the East Antarctic Plateau, one of the coldest and driest places on Earth. In July 1983, thermometers here hit <strong>−89.2°C</strong>—the lowest surface air temperature ever directly recorded on our planet.<button type="button" class="cite-btn" data-ref="1" aria-label="Source 1"><sub>1</sub></button>
+      </p>
+      <p>
+        Yet straight beneath your boots, buried under nearly four kilometers of solid ice, sits <strong>Lake Vostok</strong>: a liquid freshwater lake roughly 250 km long, 50 km wide, and holding about 5,400 km³ of water—comparable in volume to Lake Michigan.<button type="button" class="cite-btn" data-ref="5" aria-label="Source 5"><sub>5</sub></button><button type="button" class="cite-btn" data-ref="12" aria-label="Source 12"><sub>12</sub></button> Scroll down to slice straight through the ice sheet, the lake, the ancient mud, and the rift bedrock underneath.
+      </p>
+      <div class="fact-grid">
+        <div class="fact-box">
+          <div class="f-label">Annual Snowfall</div>
+          <div class="f-val">~2 cm water eq.</div>
+        </div>
+        <div class="fact-box">
+          <div class="f-label">Lake Isolation</div>
+          <div class="f-val">~14–15 million yr</div>
+        </div>
+        <div class="fact-box">
+          <div class="f-label">Total Descent</div>
+          <div class="f-val">5,000 meters</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. FIRN & AIR: 0 - 100 m -->
+    <section class="layer-card" id="sec-firn" data-depth="100">
+      <span class="depth-tag">0 – 100 m · Firn Compression Zone</span>
+      <h2>Where Snow Becomes a Vault for Ancient Air</h2>
+      <p>
+        Up here, snow does not melt—it simply piles up and crushes itself into dense granular snow called <strong>firn</strong>. For the first ~90 to 100 meters, air still circulates freely through microscopic tunnels between the snow grains.
+      </p>
+      <p>
+        Right around 100 meters down, the weight of the overlying snow seals those tunnels shut. Tiny pockets of atmosphere are locked into individual bubbles. Because air keeps diffusing downward until lock-in, the trapped air at any depth is actually several thousand years younger than the surrounding ice.<button type="button" class="cite-btn" data-ref="2" aria-label="Source 2"><sub>2</sub></button>
+      </p>
+    </section>
+
+    <!-- 3. GLACIAL ARCHIVE: 100 - 3,310 m -->
+    <section class="layer-card" id="sec-archive" data-depth="1600">
+      <span class="depth-tag">100 – 3,310 m · 420,000-Year Glacial Archive</span>
+      <h2>Four Ice Ages, Volcanic Ash, and Vanishing Bubbles</h2>
+      <p>
+        This three-kilometer column is the famous Vostok ice core archive. It preserves <strong>420,000 years</strong> of Earth's climate across four complete glacial–interglacial cycles, proving how tightly atmospheric CO₂ (180–280 ppm) and methane marched in lockstep with global temperature.<button type="button" class="cite-btn" data-ref="2" aria-label="Source 2"><sub>2</sub></button>
+      </p>
+      <p>
+        Look closely at the strata in the cross-section: faint brown bands are <strong>Ice Age dust</strong> blown all the way from windy, arid Patagonia during cold peaks; razor-thin dark streaks are <strong>volcanic ash</strong> from Southern Hemisphere eruptions.<button type="button" class="cite-btn" data-ref="2" aria-label="Source 2"><sub>2</sub></button>
+      </p>
+      <p>
+        Between 500 m and 1,250 m, something strange happens to the air bubbles: under rising pressure, they literally disappear. The gas molecules are forced directly into the water-ice crystal lattice, forming glassy solid cages called <strong>air clathrate hydrates</strong>.<button type="button" class="cite-btn" data-ref="3" aria-label="Source 3"><sub>3</sub></button>
+      </p>
+    </section>
+
+    <!-- 4. BASAL SHEAR & ACCRETION ICE: 3,310 - 3,769 m -->
+    <section class="layer-card" id="sec-accretion" data-depth="3540">
+      <span class="depth-tag">3,310 – 3,769 m · Basal Shear &amp; Accretion Ice</span>
+      <h2>Ice That Froze From the Bottom Up</h2>
+      <p>
+        Below 3,310 meters, the neat chronological layers get twisted and folded by the slow, grinding flow of the ice sheet over bedrock.<button type="button" class="cite-btn" data-ref="2" aria-label="Source 2"><sub>2</sub></button> Then, at <strong>3,539 meters</strong>, everything changes abruptly: the chemistry shifts, the air clathrates vanish, and the ice crystals suddenly balloon from millimeters to giants up to a meter across.<button type="button" class="cite-btn" data-ref="4" aria-label="Source 4"><sub>4</sub></button>
+      </p>
+      <p>
+        This bottom ~230 meters is <strong>accretion ice</strong>. It never fell from the sky as snow. Instead, it is actual Lake Vostok water that slowly froze onto the underside of the passing glacier—a natural frozen sample of the lake itself, complete with occasional dark mineral specks scoured from the lakebed.<button type="button" class="cite-btn" data-ref="4" aria-label="Source 4"><sub>4</sub></button>
+      </p>
+    </section>
+
+    <!-- 5. SLOPED ICE CEILING: 3,769 m -->
+    <section class="layer-card water-zone" id="sec-ceiling" data-depth="3769">
+      <span class="depth-tag">3,769 m Depth · −281 m Below Sea Level · 34 MPa</span>
+      <h2>The Sloped Ice Ceiling &amp; The 2012 Breakthrough</h2>
+      <p>
+        Here is the boundary between solid glacier and liquid water—hundreds of meters below sea level. On <strong>February 5, 2012</strong>, Russian drillers finally pierced this ceiling at 3,769.3 meters in Borehole 5G.<button type="button" class="cite-btn" data-ref="6" aria-label="Source 6"><sub>6</sub></button>
+      </p>
+      <p>
+        Because the lake sits under roughly 340 atmospheres of pressure from the ice above, water immediately surged nearly 600 meters up the under-pressurized borehole and froze solid, forming a plug that scientists later drilled back out to analyze.<button type="button" class="cite-btn" data-ref="6" aria-label="Source 6"><sub>6</sub></button>
+      </p>
+      <p>
+        Notice that the ice ceiling isn't flat—it tilts downward toward the north, where the ice sheet is thicker (~4,200 m). That slope drives a planetary-scale conveyor belt: ice melts into the lake in the deeper north and refreezes onto the ceiling here in the south.<button type="button" class="cite-btn" data-ref="12" aria-label="Source 12"><sub>12</sub></button><button type="button" class="cite-btn" data-ref="8" aria-label="Source 8"><sub>8</sub></button>
+      </p>
+    </section>
+
+    <!-- 6. SUBGLACIAL LAKE WATER: 3,769 - 4,550 m -->
+    <section class="layer-card water-zone" id="sec-water" data-depth="4150">
+      <span class="depth-tag">3,769 – 4,550 m · Subglacial Lake Vostok</span>
+      <h2>Pitch Black, Hyper-Oxygenated, and Slowly Spinning</h2>
+      <p>
+        Not a single photon of sunlight has reached this water in millions of years, yet it is far from stagnant. Warmth from Earth's crust below and melting/freezing at the tilted ice roof above combine with Earth's rotation to stir the lake into slow, vertical <strong>rotating convection columns</strong>—a style of circulation seen in no other lake on Earth. A parcel of water takes roughly 20 to 30 days to travel from floor to ceiling.<button type="button" class="cite-btn" data-ref="8" aria-label="Source 8"><sub>8</sub></button>
+      </p>
+      <p>
+        Even wilder is the gas chemistry. Every time ancient glacial ice melts into the lake, it dumps its trapped air clathrates into the water—but when water refreezes as accretion ice, it leaves those gases behind. Over millions of years, oxygen and nitrogen have built up to <strong>super-saturated levels</strong>—potentially ~50 times more dissolved oxygen than ordinary freshwater, enough to be toxic to many familiar organisms.<button type="button" class="cite-btn" data-ref="7" aria-label="Source 7"><sub>7</sub></button>
+      </p>
+      <p>
+        Is anything alive here? Clean-room analyses of accretion ice and refrozen borehole water show an extraordinarily sparse, ultra-low-biomass environment. Most DNA signals in early samples were traced to drilling-fluid contaminants, though a few unidentifiable bacterial sequences—including thermophilic clues linked to warm fault vents—keep the search for true extremophiles wide open.<button type="button" class="cite-btn" data-ref="9" aria-label="Source 9"><sub>9</sub></button>
+      </p>
+    </section>
+
+    <!-- 7. PRE-GLACIAL SEDIMENTS: 4,550 - 4,620 m -->
+    <section class="layer-card sediment-zone" id="sec-sediment" data-depth="4585">
+      <span class="depth-tag">4,550 – 4,620 m · Lake-Floor Sediments</span>
+      <h2>70 Meters of Pre-Glacial Time Capsule</h2>
+      <p>
+        At the bottom of the water column—roughly 800 meters deep in the southern main basin—rests a blanket of soft sediment up to 70 meters thick (and thicker in deep troughs).<button type="button" class="cite-btn" data-ref="10" aria-label="Source 10"><sub>10</sub></button><button type="button" class="cite-btn" data-ref="12" aria-label="Source 12"><sub>12</sub></button>
+      </p>
+      <p>
+        Seismic and gravity surveys suggest these layers were deposited before the East Antarctic Ice Sheet permanently entombed the basin around <strong>14 to 15 million years ago</strong> during the Middle Miocene.<button type="button" class="cite-btn" data-ref="10" aria-label="Source 10"><sub>10</sub></button><button type="button" class="cite-btn" data-ref="12" aria-label="Source 12"><sub>12</sub></button> If anyone ever cores this mud cleanly, it could preserve fossil pollen, microbes, and climate records from a greener, ice-free Antarctica.
+      </p>
+    </section>
+
+    <!-- 8. RIFT BEDROCK & LIQUID PHYSICS: 4,620 - 5,000 m -->
+    <section class="layer-card bedrock-zone" id="sec-bedrock" data-depth="4900">
+      <span class="depth-tag">4,620 – 5,000 m · East Antarctic Rift Bedrock</span>
+      <h2>The Bottom: How Is a Liquid Lake Possible Here?</h2>
+      <p>
+        Beneath the mud lies fractured continental crust. Lake Vostok sits inside an ancient <strong>tectonic rift valley</strong>—a deep structural trough formed along a major geological boundary in East Antarctica, much like Lake Baikal in Siberia.<button type="button" class="cite-btn" data-ref="11" aria-label="Source 11"><sub>11</sub></button>
+      </p>
+      <p>
+        Three physical ingredients work together to keep Lake Vostok liquid beneath the coldest surface on Earth:<button type="button" class="cite-btn" data-ref="5" aria-label="Source 5"><sub>5</sub></button><button type="button" class="cite-btn" data-ref="12" aria-label="Source 12"><sub>12</sub></button>
+        <strong>(1) Pressure:</strong> Nearly 4 km of ice exerts ~34–38 MPa, squeezing water molecules so they stay liquid down to roughly −2.6°C to −3.0°C.
+        <strong>(2) Insulation:</strong> That same 4 km of ice is a massive thermal blanket, sealing the lake off from the −55°C to −89°C polar air above.
+        <strong>(3) Geothermal Heat:</strong> Gentle heat rising from Earth's interior (~45–54 mW/m²) warms the bedrock from below, nudging the basal ice over its depressed melting point.
+      </p>
+
+      <!-- INTERACTIVE "TEST THE PHYSICS" SIMULATOR -->
+      <div class="sim-box" aria-label="Interactive physics simulator for why Lake Vostok stays liquid">
+        <div class="sim-title">Test the Physics: Remove Any Ingredient</div>
+        <div class="sim-toggles">
+          <label class="sim-toggle">
+            <input type="checkbox" id="sim-pressure" checked>
+            <div>
+              <strong>Ice Weight Pressure</strong>
+              <span>Lowers freezing point to ~−2.7°C</span>
+            </div>
+          </label>
+          <label class="sim-toggle">
+            <input type="checkbox" id="sim-blanket" checked>
+            <div>
+              <strong>4 km Ice Blanket</strong>
+              <span>Blocks −55°C surface air</span>
+            </div>
+          </label>
+          <label class="sim-toggle">
+            <input type="checkbox" id="sim-geothermal" checked>
+            <div>
+              <strong>Geothermal Heat</strong>
+              <span>~50 mW/m² rising from bedrock</span>
+            </div>
+          </label>
+        </div>
+        <div class="sim-result" id="sim-result">
+          <strong>STATE: LIQUID SUBGLACIAL LAKE (~−2.6°C)</strong>
+          All three forces balance: the 4 km ice blanket traps Earth's faint geothermal warmth, while 34+ MPa of pressure lowers the freezing point just enough to sustain a 5,400 km³ liquid sea.
+        </div>
+        <p class="model-note">
+          <strong>Model transparency:</strong> This toggle box is a qualitative conceptual model based on published Lake Vostok boundary conditions rather than a live thermodynamic solver. Likewise, the HUD pressure and temperature readouts are interpolated from published Vostok ice-core and subglacial reference profiles.
+        </p>
+      </div>
+
+      <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <span style="font-size: 13px; color: var(--text-muted);">
+          Every non-general factual claim is cited to its peer-reviewed paper. Compiled by Gemini Neon 11/2026.
+        </span>
+        <button type="button" class="hud-btn" id="open-sources-bottom" aria-haspopup="dialog">
+          Open Peer-Reviewed Sources (12)
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- SEPARATE OPENABLE PEER-REVIEWED SOURCES MODAL -->
+  <div class="modal-backdrop" id="sources-modal" role="dialog" aria-modal="true" aria-labelledby="sources-modal-title">
+    <div class="sources-box">
+      <div class="sources-header">
+        <div>
+          <h3 id="sources-modal-title">Peer-Reviewed Scientific Sources</h3>
+          <p>Full citations &amp; non-clickable DOIs (click "Copy DOI" to copy safely) // Site inspiration: miaai-lab.github.io/Gemini-4-Neon-100-HTML-Files/064-antarctic-ice-core-scroll.html</p>
+        </div>
+        <button type="button" class="close-btn" id="close-sources">Close [Esc]</button>
+      </div>
+      <ol class="sources-list" id="sources-list"></ol>
+    </div>
+  </div>
+
+  <!-- STATIC SVG TEMPLATE FOR 2D CROSS-SECTION MINI-MAP (ZERO innerHTML IN JS) -->
+  <template id="minimap-svg-template">
+    <svg viewBox="0 0 185 360" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="xsSky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#071226"/>
+          <stop offset="68%" stop-color="#15355e"/>
+          <stop offset="100%" stop-color="#7ec0e6"/>
+        </linearGradient>
+        <linearGradient id="xsIce" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#e4f3ff"/>
+          <stop offset="5%" stop-color="#bae6fd"/>
+          <stop offset="28%" stop-color="#58b0e3"/>
+          <stop offset="62%" stop-color="#1e6ba6"/>
+          <stop offset="92%" stop-color="#134574"/>
+          <stop offset="100%" stop-color="#174c78"/>
+        </linearGradient>
+        <linearGradient id="xsAccretion" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1b5480"/>
+          <stop offset="100%" stop-color="#2b75a3"/>
+        </linearGradient>
+        <linearGradient id="xsWater" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#062d4d"/>
+          <stop offset="55%" stop-color="#03182e"/>
+          <stop offset="100%" stop-color="#020c1a"/>
+        </linearGradient>
+        <linearGradient id="xsSediment" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#8b6c47"/>
+          <stop offset="100%" stop-color="#543e27"/>
+        </linearGradient>
+        <linearGradient id="xsBedrock" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#261f24"/>
+          <stop offset="55%" stop-color="#2a1a1d"/>
+          <stop offset="100%" stop-color="#4c1c14"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Polar Twilight Sky (y: 0..24) -->
+      <rect x="0" y="0" width="185" height="24" fill="url(#xsSky)"/>
+      <circle cx="22" cy="6" r="0.8" fill="#e0f2fe" opacity="0.9"/>
+      <circle cx="48" cy="11" r="0.7" fill="#e0f2fe" opacity="0.7"/>
+      <circle cx="82" cy="5" r="0.9" fill="#e0f2fe" opacity="0.85"/>
+      <circle cx="152" cy="8" r="0.8" fill="#e0f2fe" opacity="0.8"/>
+      <circle cx="170" cy="13" r="0.6" fill="#e0f2fe" opacity="0.65"/>
+
+      <!-- Miniature Vostok Station & Blinking Red Radio Mast at 0 m (y = 24) -->
+      <rect x="106" y="19" width="15" height="5" fill="#0f172a"/>
+      <rect x="123" y="20.5" width="9" height="3.5" fill="#1e293b"/>
+      <rect x="108.5" y="20.5" width="2" height="1.5" fill="#fbbf24"/>
+      <rect x="112.5" y="20.5" width="2" height="1.5" fill="#fbbf24"/>
+      <rect x="116.5" y="20.5" width="2" height="1.5" fill="#fbbf24"/>
+      <line x1="138" y1="24" x2="138" y2="10" stroke="#cbd5e1" stroke-width="0.9"/>
+      <circle class="svg-beacon" cx="138" cy="10" r="1.6" fill="#fb7185"/>
+
+      <!-- Glacial Ice Sheet Body (0 m to 3,539 m -> y: 24..258) -->
+      <rect x="0" y="24" width="185" height="234" fill="url(#xsIce)"/>
+
+      <!-- Granular Snow & Firn Layer (0 - 100 m -> y: 24..31) -->
+      <rect x="0" y="24" width="185" height="7" fill="#f0f9ff" opacity="0.92"/>
+      <line x1="0" y1="31" x2="185" y2="31" stroke="#7dd3fc" stroke-width="0.7" stroke-dasharray="2 2"/>
+
+      <!-- Wavy Climate Strata, Patagonian Dust Bands (brown) & Volcanic Ash (dark) -->
+      <path d="M0 54 Q46 51 92 55 T185 53" stroke="#b5946d" stroke-width="3.2" fill="none" opacity="0.34"/>
+      <path d="M0 68 Q46 70 92 67 T185 69" stroke="#1c1917" stroke-width="1.1" fill="none" opacity="0.52"/>
+      <path d="M0 95 Q50 92 100 96 T185 94" stroke="#bae6fd" stroke-width="1" fill="none" opacity="0.22"/>
+      <path d="M0 124 Q45 127 95 123 T185 125" stroke="#b5946d" stroke-width="2.6" fill="none" opacity="0.28"/>
+      <path d="M0 152 Q52 149 102 153 T185 151" stroke="#1c1917" stroke-width="1.2" fill="none" opacity="0.48"/>
+      <path d="M0 186 Q48 189 96 185 T185 187" stroke="#bae6fd" stroke-width="1" fill="none" opacity="0.18"/>
+      <path d="M0 218 Q48 222 96 216 T185 219" stroke="#b5946d" stroke-width="2.2" fill="none" opacity="0.24"/>
+
+      <!-- Air Bubbles (upper ice) transitioning to Clathrate Hydrate diamonds (mid ice) -->
+      <g fill="#f0f9ff" opacity="0.72">
+        <circle cx="38" cy="40" r="1.4"/><circle cx="72" cy="44" r="1.2"/><circle cx="152" cy="42" r="1.5"/>
+        <circle cx="54" cy="58" r="1.1"/><circle cx="136" cy="61" r="1.2"/><circle cx="96" cy="76" r="1.0"/>
+        <circle cx="42" cy="82" r="0.9"/><circle cx="160" cy="85" r="0.9"/>
+      </g>
+      <g stroke="#bae6fd" stroke-width="0.8" fill="none" opacity="0.65">
+        <polygon points="56,104 58.5,106.5 56,109 53.5,106.5"/>
+        <polygon points="146,112 148.5,114.5 146,117 143.5,114.5"/>
+        <polygon points="86,134 88.5,136.5 86,139 83.5,136.5"/>
+        <polygon points="158,142 160.5,144.5 158,147 155.5,144.5"/>
+        <polygon points="48,168 50.5,170.5 48,173 45.5,170.5"/>
+      </g>
+
+      <!-- Folded / Twisted Basal Shear Ice (3,310 - 3,539 m -> y: 242..258) -->
+      <path d="M0 246 Q25 241 50 247 T100 245 T150 248 T185 244" stroke="#93c5fd" stroke-width="1.2" fill="none" opacity="0.45"/>
+      <path d="M0 253 Q28 258 56 251 T112 255 T162 250 T185 254" stroke="#60a5fa" stroke-width="1.2" fill="none" opacity="0.4"/>
+
+      <!-- Accretion Ice with Sloped Bottom Ceiling (3,539 - 3,769 m -> y: 258..282/266) -->
+      <polygon points="0,258 185,258 185,266 0,282" fill="url(#xsAccretion)"/>
+      <g stroke="#bae6fd" stroke-width="0.7" opacity="0.35" fill="none">
+        <polyline points="22,258 34,270 18,280"/>
+        <polyline points="58,258 72,268 54,277"/>
+        <polyline points="96,258 108,266 94,274"/>
+        <polyline points="134,258 148,264 136,270"/>
+        <polyline points="164,258 174,263 166,267"/>
+      </g>
+
+      <!-- Fractured Rift Bedrock Base & Sloping Valley Walls framing Lake Vostok -->
+      <polygon points="0,278 24,282 40,326 145,326 162,270 185,266 185,360 0,360" fill="url(#xsBedrock)"/>
+
+      <!-- Subglacial Lake Vostok Tectonic Rift Water Basin -->
+      <polygon points="22,280 164,268 146,325 39,325" fill="url(#xsWater)"/>
+
+      <!-- Subtle Animated Rotating Convection Loops inside Lake Vostok -->
+      <ellipse class="svg-convect" cx="72" cy="298" rx="18" ry="15" fill="none" stroke="#38bdf8" stroke-width="0.9" stroke-dasharray="4 3" opacity="0.55"/>
+      <ellipse class="svg-convect" cx="116" cy="295" rx="18" ry="15" fill="none" stroke="#22d3ee" stroke-width="0.9" stroke-dasharray="4 3" opacity="0.55"/>
+
+      <!-- Sloped Ice-Water Ceiling Glowing Interface Line -->
+      <line x1="20" y1="280.5" x2="165" y2="268" stroke="#7dd3fc" stroke-width="1.8"/>
+
+      <!-- 70 m Pre-Glacial Layered Sediment Bed at Bottom of Rift Trough -->
+      <polygon points="39,324 146,324 142,331 43,331" fill="url(#xsSediment)"/>
+      <line x1="41" y1="327.5" x2="144" y2="327.5" stroke="#e5c799" stroke-width="0.6" opacity="0.45"/>
+
+      <!-- Fractured Rift Bedrock Faults & Pulsing Orange Geothermal Heat Veins -->
+      <g class="svg-heat-vein" fill="none" stroke-linecap="round">
+        <polyline points="30,360 38,342 32,326" stroke="#fb923c" stroke-width="1.6"/>
+        <polyline points="66,360 72,345 68,332" stroke="#f97316" stroke-width="1.8"/>
+        <polyline points="104,360 98,344 106,332" stroke="#fb923c" stroke-width="1.7"/>
+        <polyline points="140,360 134,344 142,331" stroke="#f97316" stroke-width="1.5"/>
+        <polyline points="168,360 162,335 168,308" stroke="#fb923c" stroke-width="1.2"/>
+      </g>
+      <g stroke="#fed7aa" stroke-width="0.9" fill="none" opacity="0.8">
+        <path d="M68 351 L68 339 M65.5 342 L68 339 L70.5 342"/>
+        <path d="M104 351 L104 339 M101.5 342 L104 339 L106.5 342"/>
+      </g>
+
+      <!-- Dashed Borehole 5G Shaft descending from Vostok Station (0 m -> 3,769 m) -->
+      <line x1="120" y1="24" x2="120" y2="272" stroke="#ffffff" stroke-width="1.1" stroke-dasharray="3 2.5" opacity="0.85"/>
+      <circle cx="120" cy="272" r="2.2" fill="#22d3ee" stroke="#ffffff" stroke-width="0.8"/>
+
+      <!-- Depth Ticks along Left Edge -->
+      <g font-family="ui-monospace, monospace" font-size="6.5" fill="#e0f2fe" opacity="0.85">
+        <line x1="0" y1="24" x2="5" y2="24" stroke="#0c4a6e" stroke-width="0.9"/>
+        <text x="7" y="29" fill="#0c4a6e" font-weight="700">0 m</text>
+        <line x1="0" y1="90" x2="5" y2="90" stroke="#e0f2fe" stroke-width="0.8"/>
+        <text x="7" y="92">1 km</text>
+        <line x1="0" y1="156" x2="5" y2="156" stroke="#e0f2fe" stroke-width="0.8"/>
+        <text x="7" y="158">2 km</text>
+        <line x1="0" y1="222" x2="5" y2="222" stroke="#e0f2fe" stroke-width="0.8"/>
+        <text x="7" y="224">3 km</text>
+        <line x1="0" y1="273" x2="6" y2="273" stroke="#7dd3fc" stroke-width="1"/>
+        <text x="7" y="271" fill="#7dd3fc" font-weight="700">3.77k</text>
+        <line x1="0" y1="354" x2="5" y2="354" stroke="#fed7aa" stroke-width="0.8"/>
+        <text x="7" y="355" fill="#fed7aa">5 km</text>
+      </g>
+
+      <!-- Inline Geological Zone Micro-Labels -->
+      <g font-family="ui-monospace, monospace" font-weight="700" text-anchor="end">
+        <text x="179" y="45" font-size="6.4" fill="#0c4a6e">FIRN &amp; BUBBLES</text>
+        <text x="179" y="65" font-size="6" fill="#0f172a" opacity="0.85">DUST &amp; ASH</text>
+        <text x="179" y="114" font-size="6.4" fill="#e0f2fe">CLATHRATES</text>
+        <text x="179" y="176" font-size="6.2" fill="#bae6fd" opacity="0.9">420 ka ICE CORE</text>
+        <text x="116" y="198" font-size="5.8" fill="#ffffff" opacity="0.85">5G →</text>
+        <text x="179" y="252" font-size="5.8" fill="#bfdbfe">BASAL SHEAR</text>
+        <text x="179" y="264" font-size="5.8" fill="#e0f2fe">ACCRETION ICE</text>
+        <text x="92" y="302" font-size="7.4" fill="#7dd3fc" text-anchor="middle">LAKE VOSTOK</text>
+        <text x="92" y="311" font-size="5.6" fill="#bae6fd" text-anchor="middle" opacity="0.9">~800 m WATER</text>
+        <text x="92" y="329.5" font-size="5.2" fill="#fef3c7" text-anchor="middle">70 m SEDIMENT</text>
+        <text x="179" y="349" font-size="6" fill="#fdba74">RIFT BEDROCK</text>
+      </g>
+    </svg>
+  </template>
+
+  <script>
+    (() => {
+      "use strict";
+
+      /* ========================================================================
+         1. SAFE CLONING OF 2D GEOLOGICAL CROSS-SECTION SVG (ZERO innerHTML)
+         ======================================================================== */
+      const svgTemplate = document.getElementById("minimap-svg-template");
+      if (svgTemplate && svgTemplate.content) {
+        document.querySelectorAll(".xsec-svg-host").forEach((host) => {
+          host.appendChild(svgTemplate.content.cloneNode(true));
+        });
+      }
+
+      /* ========================================================================
+         2. PEER-REVIEWED SOURCES (12 VERIFIED PAPERS, NON-CLICKABLE DOIs)
+         ======================================================================== */
+      const SOURCES = [
+        {
+          id: 1,
+          citation: "Turner, J., Anderson, P., Lachlan-Cope, T., Colwell, S., Phillips, T., Kirchgaessner, A., Marshall, G. J., King, J. C., Bracegirdle, T., Vaughan, D. G., Lagun, V., & Orr, A. (2009). Record low surface air temperature at Vostok station, Antarctica. Journal of Geophysical Research: Atmospheres, 114(D24), D24102.",
+          doi: "https://doi.org/10.1029/2009JD012104"
+        },
+        {
+          id: 2,
+          citation: "Petit, J. R., Jouzel, J., Raynaud, D., Barkov, N. I., Barnola, J.-M., Basile, I., Bender, M., Chappellaz, J., Davis, M., Delaygue, G., Delmotte, M., Kotlyakov, V. M., Legrand, M., Lipenkov, V. Y., Lorius, C., Pépin, L., Ritz, C., Saltzman, E., & Stievenard, M. (1999). Climate and atmospheric history of the past 420,000 years from the Vostok ice core, Antarctica. Nature, 399(6735), 429–436.",
+          doi: "https://doi.org/10.1038/20859"
+        },
+        {
+          id: 3,
+          citation: "Lipenkov, V. Y., & Istomin, V. A. (2001). On the stability of air clathrate-hydrate crystals in subglacial Lake Vostok, Antarctica. Materialy Glyatsiologicheskikh Issledovaniy, 91, 129–133.",
+          doi: "No DOI assigned (print journal: Mater. Glyatsiol. Issled., Vol. 91, pp. 129–133)"
+        },
+        {
+          id: 4,
+          citation: "Jouzel, J., Petit, J. R., Souchez, R., Barkov, N. I., Lipenkov, V. Y., Raynaud, D., Stievenard, M., Vassiliev, N. I., Verbeke, V., & Vimeux, F. (1999). More than 200 meters of lake ice above subglacial Lake Vostok, Antarctica. Science, 286(5447), 2138–2141.",
+          doi: "https://doi.org/10.1126/science.286.5447.2138"
+        },
+        {
+          id: 5,
+          citation: "Kapitsa, A. P., Ridley, J. K., Robin, G. de Q., Siegert, M. J., & Zotikov, I. A. (1996). A large deep freshwater lake beneath the ice of central East Antarctica. Nature, 381(6584), 684–686.",
+          doi: "https://doi.org/10.1038/381684a0"
+        },
+        {
+          id: 6,
+          citation: "Lukin, V. V., & Vasiliev, N. I. (2014). Technological aspects of the final phase of drilling borehole 5G and unsealing Vostok Subglacial Lake, East Antarctica. Annals of Glaciology, 55(65), 83–89.",
+          doi: "https://doi.org/10.3189/2014AoG65A002"
+        },
+        {
+          id: 7,
+          citation: "McKay, C. P., Hand, K. P., Doran, P. T., Andersen, D. T., & Priscu, J. C. (2003). Clathrate formation and the fate of noble and biologically useful gases in Lake Vostok, Antarctica. Geophysical Research Letters, 30(13), 1702.",
+          doi: "https://doi.org/10.1029/2003GL017490"
+        },
+        {
+          id: 8,
+          citation: "Wells, M. G., & Wettlaufer, J. S. (2008). Circulation in Lake Vostok: A laboratory analogue study. Geophysical Research Letters, 35(3), L03501.",
+          doi: "https://doi.org/10.1029/2007GL032162"
+        },
+        {
+          id: 9,
+          citation: "Bulat, S. A. (2016). Microbiology of the subglacial Lake Vostok: first results of borehole-frozen lake water analysis and prospects for searching for lake inhabitants. Philosophical Transactions of the Royal Society A: Mathematical, Physical and Engineering Sciences, 374(2059), 20140292.",
+          doi: "https://doi.org/10.1098/rsta.2014.0292"
+        },
+        {
+          id: 10,
+          citation: "Filina, I. Y., Blankenship, D. D., Thoma, M., Lukin, V. V., Masolov, V. N., & Sen, M. K. (2008). New 3D bathymetry and sediment distribution in Lake Vostok: Implication for pre-glacial origin and numerical modeling of the internal processes within the lake. Earth and Planetary Science Letters, 276(1–2), 106–114.",
+          doi: "https://doi.org/10.1016/j.epsl.2008.09.012"
+        },
+        {
+          id: 11,
+          citation: "Studinger, M., Karner, G. D., Bell, R. E., Levin, V., Raymond, C. A., & Tikku, A. A. (2003). Geophysical models for the tectonic framework of the Lake Vostok region, East Antarctica. Earth and Planetary Science Letters, 216(4), 663–677.",
+          doi: "https://doi.org/10.1016/S0012-821X(03)00548-X"
+        },
+        {
+          id: 12,
+          citation: "Siegert, M. J., Ellis-Evans, J. C., Tranter, M., Mayer, C., Petit, J. R., Salamatin, A., & Priscu, J. C. (2001). Physical, chemical and biological processes in Lake Vostok and other Antarctic subglacial lakes. Nature, 414(6864), 603–609.",
+          doi: "https://doi.org/10.1038/414603a"
+        }
+      ];
+
+      // Safe local copy helper compatible with sandboxed iframes & strict CSP
+      function copyTextSafe(text) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        let ok = false;
+        try {
+          ok = document.execCommand("copy");
+        } catch (err) {
+          ok = false;
+        }
+        document.body.removeChild(ta);
+        return ok;
+      }
+
+      const sourcesListEl = document.getElementById("sources-list");
+      const modalEl = document.getElementById("sources-modal");
+
+      SOURCES.forEach((src) => {
+        const li = document.createElement("li");
+        li.className = "source-item";
+        li.id = "ref-" + src.id;
+
+        const textDiv = document.createElement("div");
+        const numSpan = document.createElement("span");
+        numSpan.className = "source-num";
+        numSpan.textContent = "[" + src.id + "]";
+        textDiv.appendChild(numSpan);
+        textDiv.appendChild(document.createTextNode(src.citation));
+
+        const doiRow = document.createElement("div");
+        doiRow.className = "source-doi-row";
+
+        const doiCode = document.createElement("span");
+        doiCode.className = "source-doi";
+        doiCode.textContent = src.doi;
+        doiRow.appendChild(doiCode);
+
+        if (src.doi.startsWith("https://")) {
+          const copyBtn = document.createElement("button");
+          copyBtn.type = "button";
+          copyBtn.className = "copy-doi-btn";
+          copyBtn.textContent = "Copy DOI";
+          copyBtn.addEventListener("click", () => {
+            const copied = copyTextSafe(src.doi);
+            copyBtn.textContent = copied ? "Copied" : "Select text";
+            setTimeout(() => { copyBtn.textContent = "Copy DOI"; }, 1400);
+          });
+          doiRow.appendChild(copyBtn);
+        }
+
+        li.appendChild(textDiv);
+        li.appendChild(doiRow);
+        sourcesListEl.appendChild(li);
+      });
+
+      function openSources(highlightId) {
+        modalEl.classList.add("open");
+        document.querySelectorAll(".source-item.highlight").forEach((el) => el.classList.remove("highlight"));
+        if (highlightId) {
+          const target = document.getElementById("ref-" + highlightId);
+          if (target) {
+            target.classList.add("highlight");
+            target.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }
+      }
+
+      function closeSources() {
+        modalEl.classList.remove("open");
+      }
+
+      document.getElementById("open-sources-hud").addEventListener("click", () => openSources(null));
+      document.getElementById("open-sources-bottom").addEventListener("click", () => openSources(null));
+      document.getElementById("close-sources").addEventListener("click", closeSources);
+      modalEl.addEventListener("click", (e) => {
+        if (e.target === modalEl) closeSources();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && modalEl.classList.contains("open")) closeSources();
+      });
+
+      document.querySelectorAll(".cite-btn").forEach((btn) => {
+        btn.addEventListener("click", () => openSources(btn.dataset.ref));
+      });
+
+      /* ========================================================================
+         3. INTERACTIVE "TEST THE PHYSICS" SIMULATOR (ZERO innerHTML)
+         ======================================================================== */
+      const simPressure = document.getElementById("sim-pressure");
+      const simBlanket = document.getElementById("sim-blanket");
+      const simGeothermal = document.getElementById("sim-geothermal");
+      const simResult = document.getElementById("sim-result");
+
+      function updateSimulator() {
+        if (!simPressure || !simBlanket || !simGeothermal || !simResult) return;
+
+        const p = simPressure.checked;
+        const b = simBlanket.checked;
+        const g = simGeothermal.checked;
+
+        let state = "";
+        let detail = "";
+        let frozen = true;
+
+        if (p && b && g) {
+          frozen = false;
+          state = "STATE: LIQUID SUBGLACIAL LAKE (~−2.6°C)";
+          detail = "All three forces balance: the 4 km ice blanket traps Earth's faint geothermal warmth, while 34+ MPa of pressure lowers the freezing point just enough to sustain a 5,400 km³ liquid sea.";
+        } else if (!b) {
+          state = "STATE: FROZEN SOLID (−55°C)";
+          detail = "Without the insulating 4 km ice blanket, polar air drains heat away thousands of times faster than geothermal flux can replace it. The entire basin freezes solid.";
+        } else if (!g) {
+          state = "STATE: FROZEN SOLID (~−12°C)";
+          detail = "Even with pressure and insulation, without geothermal heat rising from the rift bedrock, cold surface ice slowly conducts downward until the lake freezes completely.";
+        } else {
+          state = "STATE: MOSTLY FROZEN / SHALLOW MELT ONLY";
+          detail = "Without 34+ MPa of pressure lowering the freezing point to ~−2.7°C, water must reach 0°C to stay liquid. The modest ~50 mW/m² geothermal flux can no longer maintain a deep, vast lake.";
+        }
+
+        simResult.classList.toggle("frozen", frozen);
+        simResult.textContent = "";
+        const strong = document.createElement("strong");
+        strong.textContent = state;
+        simResult.appendChild(strong);
+        simResult.appendChild(document.createTextNode(detail));
+      }
+
+      if (simPressure && simBlanket && simGeothermal) {
+        [simPressure, simBlanket, simGeothermal].forEach((el) => {
+          el.addEventListener("change", updateSimulator);
+        });
+      }
+
+      /* ========================================================================
+         4. EXACT DATA-DEPTH CALIBRATION, TELEMETRY & POINTER-SAFE SCRUBBERS
+         ======================================================================== */
+      const MAX_DEPTH = 5000;
+      const hudBar = document.getElementById("hud-bar");
+      const mobileRail = document.getElementById("mobile-progress-rail");
+      const mobileFill = document.getElementById("mobile-progress-fill");
+      const hudDepth = document.getElementById("hud-depth");
+      const hudElev = document.getElementById("hud-elev");
+      const hudPress = document.getElementById("hud-press");
+      const hudTemp = document.getElementById("hud-temp");
+      const hudZone = document.getElementById("hud-zone");
+      const xsecPhase = document.getElementById("xsec-phase");
+
+      const scrubbers = Array.from(document.querySelectorAll('[data-scrubber="true"]'));
+      const scannerLines = Array.from(document.querySelectorAll('[data-scanner-line="true"]'));
+      const scannerPills = Array.from(document.querySelectorAll('[data-scanner-pill="true"]'));
+      const bookmarkBtns = Array.from(document.querySelectorAll(".bookmark-btn"));
+      const sections = Array.from(document.querySelectorAll("section.layer-card[data-depth]"));
+
+      // Reduced motion preference (reactive if user toggles OS setting)
+      const reducedMotionQuery = window.matchMedia
+        ? window.matchMedia("(prefers-reduced-motion: reduce)")
+        : { matches: false };
+      let prefersReducedMotion = Boolean(reducedMotionQuery.matches);
+
+      // Mobile drawer controls
+      const drawerPanel = document.getElementById("desktop-xsec-panel");
+      const drawerToggleBtn = document.getElementById("toggle-xsec-drawer");
+      const drawerCloseBtn = document.getElementById("close-xsec-drawer");
+
+      function setDrawerOpen(open) {
+        drawerPanel.classList.toggle("drawer-open", open);
+        drawerToggleBtn.setAttribute("aria-expanded", String(open));
+        drawerToggleBtn.textContent = open ? "Close Map" : "Cross-Section";
+      }
+
+      drawerToggleBtn.addEventListener("click", () => {
+        setDrawerOpen(!drawerPanel.classList.contains("drawer-open"));
+      });
+      drawerCloseBtn.addEventListener("click", () => setDrawerOpen(false));
+
+      // Mobile quick-jump buttons inside the inline overview card
+      document.querySelectorAll(".quick-jump-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const target = document.getElementById(btn.dataset.jump);
+          if (target) {
+            target.scrollIntoView({
+              behavior: prefersReducedMotion ? "auto" : "smooth",
+              block: "center"
+            });
+          }
+        });
+      });
+
+      function syncRailPosition() {
+        mobileRail.style.top = hudBar.offsetHeight + "px";
+      }
+
+      // Cached piecewise-linear anchor table mapping scrollY <-> depth
+      let depthAnchors = [{ scrollY: 0, depth: 0 }, { scrollY: 1, depth: MAX_DEPTH }];
+      let sectionCenters = [];
+      let currentDepth = 0;
+
+      function rebuildAnchors() {
+        const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+        const raw = [{ scrollY: 0, depth: 0 }];
+        sectionCenters = [];
+
+        for (const sec of sections) {
+          const depth = Number(sec.dataset.depth);
+          const rect = sec.getBoundingClientRect();
+          const centerDocY = window.scrollY + rect.top + rect.height * 0.5;
+          const targetY = Math.min(maxScroll, Math.max(0, centerDocY - window.innerHeight * 0.5));
+          sectionCenters.push({ id: sec.id, scrollY: targetY, depth });
+          raw.push({ scrollY: targetY, depth });
+        }
+        raw.push({ scrollY: maxScroll, depth: MAX_DEPTH });
+
+        // Guarantee monotonic non-decreasing scrollY and depth
+        const clean = [raw[0]];
+        for (let i = 1; i < raw.length; i++) {
+          const prev = clean[clean.length - 1];
+          const sy = Math.max(prev.scrollY, raw[i].scrollY);
+          const dp = Math.max(prev.depth, raw[i].depth);
+          if (sy === prev.scrollY && dp === prev.depth) continue;
+          clean.push({ scrollY: sy, depth: dp });
+        }
+        depthAnchors = clean;
+      }
+
+      function scrollYToDepth(y) {
+        const first = depthAnchors[0];
+        const last = depthAnchors[depthAnchors.length - 1];
+        if (y <= first.scrollY) return first.depth;
+        if (y >= last.scrollY) return last.depth;
+
+        for (let i = 0; i < depthAnchors.length - 1; i++) {
+          const a = depthAnchors[i];
+          const b = depthAnchors[i + 1];
+          if (y >= a.scrollY && y <= b.scrollY) {
+            if (b.scrollY === a.scrollY) return b.depth;
+            const t = (y - a.scrollY) / (b.scrollY - a.scrollY);
+            return a.depth + t * (b.depth - a.depth);
+          }
+        }
+        return last.depth;
+      }
+
+      function depthToScrollY(depth) {
+        const d = Math.min(MAX_DEPTH, Math.max(0, depth));
+        if (d <= 0) return 0;
+        const last = depthAnchors[depthAnchors.length - 1];
+        if (d >= MAX_DEPTH) return last.scrollY;
+
+        for (let i = 0; i < depthAnchors.length - 1; i++) {
+          const a = depthAnchors[i];
+          const b = depthAnchors[i + 1];
+          if (d >= a.depth && d <= b.depth && b.depth > a.depth) {
+            const t = (d - a.depth) / (b.depth - a.depth);
+            return a.scrollY + t * (b.scrollY - a.scrollY);
+          }
+        }
+        return last.scrollY;
+      }
+
+      function computeTelemetry(d) {
+        const elev = Math.round(3488 - d);
+        let pressure = 0.1;
+        if (d <= 3769) {
+          pressure = 0.1 + (d / 3769) * 33.9;
+        } else if (d <= 4550) {
+          pressure = 34.0 + ((d - 3769) / 781) * 7.7;
+        } else {
+          pressure = 41.7 + ((d - 4550) / 450) * 11.5;
+        }
+
+        let temp = -55.0;
+        if (d <= 3769) {
+          const t = d / 3769;
+          temp = -55.0 + Math.pow(t, 1.35) * 52.4;
+        } else if (d <= 4550) {
+          temp = -2.6 + ((d - 3769) / 781) * 0.2;
+        } else {
+          temp = -2.4 + ((d - 4550) / 450) * 8.4;
+        }
+
+        let zone = "SURFACE SNOW · VOSTOK STATION";
+        let phase = "SOLID SNOW";
+        if (d >= 4620) { zone = "EAST ANTARCTIC RIFT BEDROCK"; phase = "RIFT BEDROCK"; }
+        else if (d >= 4550) { zone = "PRE-GLACIAL LAKE SEDIMENTS"; phase = "WET SEDIMENT"; }
+        else if (d >= 3769) { zone = "SUBGLACIAL LAKE VOSTOK · WATER"; phase = "LIQUID WATER"; }
+        else if (d >= 3539) { zone = "ACCRETION ICE (REFROZEN LAKE)"; phase = "ACCRETION ICE"; }
+        else if (d >= 3310) { zone = "BASAL SHEAR & FOLDED ICE"; phase = "SHEARED ICE"; }
+        else if (d >= 500) { zone = "GLACIAL ICE · CLATHRATE ZONE"; phase = "ICE + CLATHRATE"; }
+        else if (d >= 100) { zone = "GLACIAL ICE · TRAPPED BUBBLES"; phase = "GLACIAL ICE"; }
+        else if (d > 15) { zone = "FIRN COMPRESSION ZONE"; phase = "FIRN"; }
+
+        return { elev, pressure, temp, zone, phase };
+      }
+
+      // Decoupled HUD & bookmark updater (runs ONLY on scroll / resize / load; zero DOM layout reads)
+      function updateHUD() {
+        const y = window.scrollY;
+        currentDepth = scrollYToDepth(y);
+        const depthProg = currentDepth / MAX_DEPTH;
+        const rounded = Math.round(currentDepth);
+        const t = computeTelemetry(currentDepth);
+
+        hudDepth.textContent = rounded.toLocaleString() + " m";
+        hudElev.textContent = (t.elev >= 0 ? "+" : "−") + Math.abs(t.elev).toLocaleString() + " m";
+        hudPress.textContent = t.pressure.toFixed(1) + " MPa";
+        hudTemp.textContent = (t.temp >= 0 ? "+" : "−") + Math.abs(t.temp).toFixed(1) + "°C";
+        hudZone.textContent = t.zone;
+        xsecPhase.textContent = t.phase;
+        mobileFill.style.width = (depthProg * 100).toFixed(2) + "%";
+
+        // Map 0..5,000 m onto SVG y=24..354 out of 360 total height
+        const svgYFrac = (24 + depthProg * 330) / 360;
+        const topPct = (svgYFrac * 100).toFixed(2) + "%";
+        scannerLines.forEach((line) => { line.style.top = topPct; });
+        scannerPills.forEach((pill) => {
+          pill.textContent = rounded.toLocaleString() + " m";
+          pill.style.top = svgYFrac < 0.14 ? "4px" : "-17px";
+        });
+        scrubbers.forEach((sc) => sc.setAttribute("aria-valuenow", String(rounded)));
+
+        // Highlight active bookmark from cached section centers (no getBoundingClientRect)
+        if (sectionCenters.length > 0) {
+          let activeId = sectionCenters[0].id;
+          let bestDist = Infinity;
+          for (const sc of sectionCenters) {
+            const dist = Math.abs(sc.scrollY - y);
+            if (dist < bestDist) {
+              bestDist = dist;
+              activeId = sc.id;
+            }
+          }
+          bookmarkBtns.forEach((b) => b.classList.toggle("active", b.dataset.target === activeId));
+        }
+      }
+
+      bookmarkBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const target = document.getElementById(btn.dataset.target);
+          if (target) {
+            target.scrollIntoView({
+              behavior: prefersReducedMotion ? "auto" : "smooth",
+              block: "center"
+            });
+          }
+        });
+      });
+
+      // Pointer-safe click & drag scrubbing using exact inverse depthToScrollY()
+      scrubbers.forEach((stage) => {
+        let dragging = false;
+        let activePointerId = null;
+
+        function scrubTo(clientY) {
+          const rect = stage.getBoundingClientRect();
+          const yFrac = (clientY - rect.top) / rect.height;
+          const depthRatio = Math.min(1, Math.max(0, (yFrac * 360 - 24) / 330));
+          const targetScrollY = depthToScrollY(depthRatio * MAX_DEPTH);
+          window.scrollTo({ top: targetScrollY, behavior: "auto" });
+        }
+
+        function endDrag() {
+          if (!dragging && activePointerId === null) return;
+          dragging = false;
+          if (activePointerId !== null) {
+            try {
+              if (stage.hasPointerCapture(activePointerId)) {
+                stage.releasePointerCapture(activePointerId);
+              }
+            } catch (_) {
+              // Ignore if capture was already released by browser
+            }
+            activePointerId = null;
+          }
+        }
+
+        stage.addEventListener("pointerdown", (e) => {
+          dragging = true;
+          activePointerId = e.pointerId;
+          try {
+            stage.setPointerCapture(e.pointerId);
+          } catch (_) {
+            // Pointer capture optional on some synthetic events
+          }
+          scrubTo(e.clientY);
+        });
+        stage.addEventListener("pointermove", (e) => {
+          if (dragging && e.pointerId === activePointerId) scrubTo(e.clientY);
+        });
+        stage.addEventListener("pointerup", endDrag);
+        stage.addEventListener("pointercancel", endDrag);
+        stage.addEventListener("lostpointercapture", endDrag);
+        window.addEventListener("blur", endDrag);
+
+        stage.addEventListener("keydown", (e) => {
+          if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+            e.preventDefault();
+            const nextDepth = Math.min(MAX_DEPTH, currentDepth + 200);
+            window.scrollTo({
+              top: depthToScrollY(nextDepth),
+              behavior: prefersReducedMotion ? "auto" : "smooth"
+            });
+          } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+            e.preventDefault();
+            const prevDepth = Math.max(0, currentDepth - 200);
+            window.scrollTo({
+              top: depthToScrollY(prevDepth),
+              behavior: prefersReducedMotion ? "auto" : "smooth"
+            });
+          }
+        });
+      });
+
+      /* ========================================================================
+         5. FULL-VIEWPORT LIVE GEOLOGICAL CROSS-SECTION CANVAS (30 FPS, MEMORY-CAPPED)
+         ======================================================================== */
+      const canvas = document.getElementById("cross-section");
+      const ctx = canvas.getContext("2d");
+      const MAX_CANVAS_W = 2560;
+      const MAX_CANVAS_H = 1440;
+      const FRAME_INTERVAL_MS = 1000 / 30;
+      let W = 0, H = 0;
+
+      function resize() {
+        W = Math.max(1, window.innerWidth);
+        H = Math.max(1, window.innerHeight);
+        // Cap DPR to 1.5 and cap total pixel dimensions to keep 4K/5K memory light
+        const baseDpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        const scaleCap = Math.min(1, MAX_CANVAS_W / (W * baseDpr), MAX_CANVAS_H / (H * baseDpr));
+        const effDpr = baseDpr * scaleCap;
+
+        canvas.width = Math.max(1, Math.floor(W * effDpr));
+        canvas.height = Math.max(1, Math.floor(H * effDpr));
+        ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
+
+        syncRailPosition();
+        rebuildAnchors();
+        updateHUD();
+        drawCrossSection(lastAnimTimeSec);
+      }
+
+      // Deterministic particles for snow, bubbles, clathrates, and abyssal specks
+      const particles = [];
+      let seed = 421983;
+      function rand() {
+        seed = (seed * 1664525 + 1013904223) % 4294967296;
+        return seed / 4294967296;
+      }
+      for (let i = 0; i < 160; i++) {
+        particles.push({
+          x: rand(),
+          y: rand(),
+          r: 1.1 + rand() * 3.0,
+          speed: 0.16 + rand() * 0.55,
+          phase: rand() * Math.PI * 2
+        });
+      }
+
+      function lerp(a, b, t) { return a + (b - a) * t; }
+      function lerpRGB(c1, c2, t) {
+        const k = Math.max(0, Math.min(1, t));
+        return `rgb(${Math.round(lerp(c1[0], c2[0], k))}, ${Math.round(lerp(c1[1], c2[1], k))}, ${Math.round(lerp(c1[2], c2[2], k))})`;
+      }
+
+      const DEPTH_COLORS = [
+        { d: 0,    top: [16, 36, 66],   bot: [160, 206, 238] },
+        { d: 120,  top: [128, 184, 224],bot: [72, 144, 198] },
+        { d: 1400, top: [38, 104, 158], bot: [20, 68, 114] },
+        { d: 3310, top: [18, 56, 96],   bot: [24, 72, 110] },
+        { d: 3769, top: [30, 88, 128],  bot: [4, 26, 48] },
+        { d: 4150, top: [3, 21, 40],    bot: [2, 11, 24] },
+        { d: 4550, top: [4, 14, 28],    bot: [76, 58, 38] },
+        { d: 4650, top: [64, 48, 32],   bot: [34, 24, 28] },
+        { d: 5000, top: [30, 18, 22],   bot: [56, 20, 16] }
+      ];
+
+      function sampleBg(d) {
+        for (let i = 0; i < DEPTH_COLORS.length - 1; i++) {
+          const a = DEPTH_COLORS[i], b = DEPTH_COLORS[i + 1];
+          if (d >= a.d && d <= b.d) {
+            const t = (d - a.d) / (b.d - a.d);
+            return [lerpRGB(a.top, b.top, t), lerpRGB(a.bot, b.bot, t)];
+          }
+        }
+        const last = DEPTH_COLORS[DEPTH_COLORS.length - 1];
+        return [lerpRGB(last.top, last.top, 0), lerpRGB(last.bot, last.bot, 0)];
+      }
+
+      // World-depth to screen-Y mapping (surface sits prominently near ~42% viewport height at 0 m)
+      const PX_PER_M = 1.65;
+      function depthToY(worldD) {
+        return H * 0.42 + (worldD - currentDepth) * PX_PER_M;
+      }
+
+      function drawCrossSection(timeSec) {
+        const [cTop, cBot] = sampleBg(currentDepth);
+        const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+        bgGrad.addColorStop(0, cTop);
+        bgGrad.addColorStop(1, cBot);
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, W, H);
+
+        // 1. Polar Twilight Sky, Stars & Vostok Station Silhouette (around 0 m)
+        const ySurf = depthToY(0);
+        const stationX = W * 0.5 - 64;
+        if (ySurf > -120) {
+          const skyGrad = ctx.createLinearGradient(0, 0, 0, Math.max(10, ySurf));
+          skyGrad.addColorStop(0, "#050d1f");
+          skyGrad.addColorStop(0.62, "#143159");
+          skyGrad.addColorStop(1, "#8bc4e8");
+          ctx.fillStyle = skyGrad;
+          ctx.fillRect(0, 0, W, Math.max(0, ySurf));
+
+          // Twinkling polar stars
+          for (let i = 0; i < 48; i++) {
+            const p = particles[i];
+            const sy = p.y * Math.max(10, ySurf - 16);
+            if (sy < ySurf - 8) {
+              const tw = 0.35 + 0.65 * Math.sin(timeSec * 1.5 + p.phase);
+              ctx.fillStyle = `rgba(224, 242, 254, ${tw * 0.78})`;
+              ctx.beginPath();
+              ctx.arc(p.x * W, sy, 0.8 + (i % 3) * 0.35, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+
+          // Snow surface & subtle drift ridge
+          ctx.fillStyle = "#e8f4ff";
+          ctx.fillRect(0, ySurf, W, 38);
+
+          // Vostok Station buildings & warm lit windows
+          ctx.fillStyle = "#122136";
+          ctx.fillRect(stationX, ySurf - 18, 56, 18);
+          ctx.fillRect(stationX + 64, ySurf - 12, 32, 12);
+          ctx.fillStyle = "#fbbf24";
+          ctx.fillRect(stationX + 8, ySurf - 11, 6, 4);
+          ctx.fillRect(stationX + 20, ySurf - 11, 6, 4);
+          ctx.fillRect(stationX + 32, ySurf - 11, 6, 4);
+          ctx.fillRect(stationX + 74, ySurf - 8, 5, 3);
+
+          // Radio mast + blinking red beacon
+          ctx.strokeStyle = "#cbd5e1";
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.moveTo(stationX + 114, ySurf);
+          ctx.lineTo(stationX + 114, ySurf - 44);
+          ctx.stroke();
+          ctx.fillStyle = Math.sin(timeSec * 3.2) > 0 ? "#fb7185" : "#4c1d24";
+          ctx.beginPath();
+          ctx.arc(stationX + 114, ySurf - 44, 2.8, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Spindrift snow blowing across the plateau
+          ctx.fillStyle = "rgba(240, 249, 255, 0.55)";
+          for (let i = 0; i < 32; i++) {
+            const p = particles[i + 50];
+            const px = ((p.x * W + timeSec * (55 + i * 1.4)) % (W + 20)) - 10;
+            const py = ySurf - 3 - p.y * 65;
+            if (py > 0 && py < ySurf + 2) {
+              ctx.beginPath();
+              ctx.arc(px, py, p.r * 0.5, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+        }
+
+        // 2. Ice Strata, Patagonian Dust Bands & Volcanic Ash Streaks (100 m – 3,310 m)
+        if (currentDepth > 30 && currentDepth < 3600) {
+          const startBand = Math.max(120, Math.floor((currentDepth - H / PX_PER_M) / 80) * 80);
+          const endBand = Math.min(3310, currentDepth + H / PX_PER_M);
+          for (let bd = startBand; bd <= endBand; bd += 80) {
+            const by = depthToY(bd);
+            const isAsh = bd % 400 === 0;
+            const isDust = bd % 240 === 0;
+            ctx.beginPath();
+            ctx.moveTo(0, by);
+            for (let x = 0; x <= W; x += 60) {
+              const wave = Math.sin(x * 0.004 + bd * 0.03) * (bd > 3000 ? 14 : 4);
+              ctx.lineTo(x, by + wave);
+            }
+            ctx.strokeStyle = isAsh
+              ? "rgba(25, 22, 28, 0.48)"
+              : isDust
+                ? "rgba(180, 148, 112, 0.24)"
+                : "rgba(186, 230, 253, 0.09)";
+            ctx.lineWidth = isAsh ? 2.5 : isDust ? 6 : 1.2;
+            ctx.stroke();
+          }
+        }
+
+        // 3. Air Bubbles -> Sparkling Clathrate Hydrate Cages (100 m – 3,540 m)
+        if (currentDepth < 3580) {
+          const bubbleFactor = Math.max(0, 1 - Math.max(0, currentDepth - 500) / 750);
+          const clathrateFactor = Math.min(1, Math.max(0, (currentDepth - 500) / 750));
+          for (const p of particles) {
+            const px = p.x * W;
+            const py = ((p.y * H * 1.4 - currentDepth * 0.45) % H + H) % H;
+            if (py < ySurf + 8) continue;
+
+            if (bubbleFactor > 0.05) {
+              ctx.fillStyle = `rgba(224, 244, 255, ${0.42 * bubbleFactor})`;
+              ctx.beginPath();
+              ctx.arc(px, py, Math.max(0.8, p.r * (0.4 + 0.6 * bubbleFactor)), 0, Math.PI * 2);
+              ctx.fill();
+            }
+            if (clathrateFactor > 0.05 && currentDepth < 3540) {
+              ctx.save();
+              ctx.translate(px, py);
+              ctx.rotate(p.phase);
+              const shimmer = 0.65 + 0.35 * Math.sin(timeSec * 2.1 + p.phase);
+              ctx.strokeStyle = `rgba(186, 230, 253, ${0.32 * clathrateFactor * shimmer})`;
+              ctx.lineWidth = 1;
+              const s = p.r * 1.3;
+              ctx.strokeRect(-s / 2, -s / 2, s, s);
+              ctx.restore();
+            }
+          }
+        }
+
+        // 4. Accretion Ice Giant Angular Crystal Facets (3,539 m – 3,769 m)
+        const yAccTop = depthToY(3539);
+        const yCeiling = depthToY(3769);
+        if (yCeiling > 0 && yAccTop < H) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(0, Math.max(0, yAccTop), W, Math.min(H, yCeiling) - Math.max(0, yAccTop));
+          ctx.clip();
+          ctx.strokeStyle = "rgba(186, 230, 253, 0.24)";
+          ctx.lineWidth = 1.2;
+          for (let i = 0; i < 16; i++) {
+            const x0 = (i / 14) * W;
+            ctx.beginPath();
+            ctx.moveTo(x0 - 40, yAccTop);
+            ctx.lineTo(x0 + 55, (yAccTop + yCeiling) * 0.5);
+            ctx.lineTo(x0 - 20, yCeiling + 20);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+
+        // 5. Sloped Ice-Water Ceiling at 3,769 m
+        if (yCeiling > -120 && yCeiling < H + 120) {
+          ctx.beginPath();
+          ctx.moveTo(0, yCeiling + 28);
+          ctx.quadraticCurveTo(W * 0.5, yCeiling + 2, W, yCeiling - 26);
+          ctx.lineTo(W, H + 100);
+          ctx.lineTo(0, H + 100);
+          ctx.closePath();
+          const waterGrad = ctx.createLinearGradient(0, yCeiling, 0, yCeiling + 450);
+          waterGrad.addColorStop(0, "rgba(7, 44, 78, 0.96)");
+          waterGrad.addColorStop(1, "rgba(2, 14, 28, 0.98)");
+          ctx.fillStyle = waterGrad;
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.moveTo(0, yCeiling + 28);
+          ctx.quadraticCurveTo(W * 0.5, yCeiling + 2, W, yCeiling - 26);
+          ctx.strokeStyle = "rgba(125, 211, 252, 0.8)";
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+        }
+
+        // 6. Subglacial Lake Water Rotating Convection Plumes (3,769 m – 4,550 m)
+        const ySedTop = depthToY(4550);
+        if (currentDepth > 3500 && currentDepth < 4750) {
+          ctx.save();
+          const topClip = Math.max(0, yCeiling - 30);
+          const botClip = Math.min(H, ySedTop);
+          if (botClip > topClip) {
+            ctx.beginPath();
+            ctx.rect(0, topClip, W, botClip - topClip);
+            ctx.clip();
+
+            for (let c = 0; c < 5; c++) {
+              const cx = W * (0.14 + c * 0.18) + Math.sin(timeSec * 0.4 + c) * 18;
+              const plume = ctx.createLinearGradient(cx - 42, 0, cx + 42, 0);
+              plume.addColorStop(0, "rgba(56, 189, 248, 0)");
+              plume.addColorStop(0.5, "rgba(56, 189, 248, 0.06)");
+              plume.addColorStop(1, "rgba(56, 189, 248, 0)");
+              ctx.fillStyle = plume;
+              ctx.fillRect(cx - 42, topClip, 84, botClip - topClip);
+            }
+
+            for (const p of particles) {
+              const px = (p.x * W + Math.sin(timeSec * p.speed + p.phase) * 24 + W) % W;
+              const py = ((p.y * H - timeSec * 14 * p.speed) % H + H) % H;
+              ctx.fillStyle = "rgba(125, 211, 252, 0.34)";
+              ctx.beginPath();
+              ctx.arc(px, py, p.r * 0.55, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+          ctx.restore();
+        }
+
+        // 7. 70 m Pre-Glacial Sediment Floor (4,550 m – 4,620 m)
+        const yBedTop = depthToY(4620);
+        if (ySedTop < H + 80 && yBedTop > -80) {
+          ctx.beginPath();
+          ctx.moveTo(0, ySedTop);
+          for (let x = 0; x <= W; x += 50) {
+            ctx.lineTo(x, ySedTop + Math.sin(x * 0.008) * 6);
+          }
+          ctx.lineTo(W, yBedTop + 20);
+          ctx.lineTo(0, yBedTop + 20);
+          ctx.closePath();
+          const sedGrad = ctx.createLinearGradient(0, ySedTop, 0, yBedTop);
+          sedGrad.addColorStop(0, "#806544");
+          sedGrad.addColorStop(1, "#4e3c28");
+          ctx.fillStyle = sedGrad;
+          ctx.fill();
+        }
+
+        // 8. Fractured Rift Bedrock & Glowing Orange Geothermal Heat Veins (4,620 m – 5,000 m)
+        if (yBedTop < H + 80) {
+          ctx.fillStyle = "#1f1519";
+          ctx.fillRect(0, Math.max(0, yBedTop), W, H - Math.max(0, yBedTop));
+
+          const pulse = 0.55 + 0.35 * Math.sin(timeSec * 1.8);
+          for (let v = 0; v < 7; v++) {
+            const vx = W * (0.08 + v * 0.14);
+            ctx.beginPath();
+            ctx.moveTo(vx, H + 40);
+            ctx.lineTo(vx + Math.sin(v * 2.1) * 35, yBedTop + 140);
+            ctx.lineTo(vx - Math.cos(v * 1.7) * 25, yBedTop + 18);
+            ctx.strokeStyle = `rgba(251, 146, 60, ${0.3 * pulse})`;
+            ctx.lineWidth = 3.2;
+            ctx.stroke();
+
+            ctx.strokeStyle = `rgba(254, 215, 170, ${0.46 * pulse})`;
+            ctx.lineWidth = 1.1;
+            ctx.stroke();
+          }
+        }
+
+        // 9. Dashed Borehole 5G Reference Shaft (0 m -> 3,769 m)
+        const boreX = stationX + 28;
+        if (yCeiling > 0) {
+          ctx.save();
+          ctx.setLineDash([5, 6]);
+          ctx.strokeStyle = "rgba(224, 242, 254, 0.34)";
+          ctx.lineWidth = 1.4;
+          ctx.beginPath();
+          ctx.moveTo(boreX, Math.max(0, ySurf));
+          ctx.lineTo(boreX, Math.min(H, yCeiling));
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      /* ========================================================================
+         6. SCROLL-DRIVEN HUD + 30 FPS / VISIBILITY-AWARE / REDUCED-MOTION LOOP
+         ======================================================================== */
+      let animRafId = null;
+      let scrollRafId = null;
+      let lastFrameTs = 0;
+      let lastAnimTimeSec = 0;
+
+      function animate(ts) {
+        if (document.hidden || prefersReducedMotion) {
+          animRafId = null;
+          return;
+        }
+        if (ts - lastFrameTs >= FRAME_INTERVAL_MS) {
+          lastFrameTs = ts;
+          lastAnimTimeSec = ts * 0.001;
+          drawCrossSection(lastAnimTimeSec);
+        }
+        animRafId = requestAnimationFrame(animate);
+      }
+
+      function startLoop() {
+        if (animRafId !== null || document.hidden || prefersReducedMotion) return;
+        lastFrameTs = 0;
+        animRafId = requestAnimationFrame(animate);
+      }
+
+      function stopLoop() {
+        if (animRafId !== null) {
+          cancelAnimationFrame(animRafId);
+          animRafId = null;
+        }
+      }
+
+      // Scroll listener: updates HUD once per frame; redraws canvas immediately in reduced-motion mode
+      window.addEventListener("scroll", () => {
+        if (scrollRafId !== null) return;
+        scrollRafId = requestAnimationFrame(() => {
+          scrollRafId = null;
+          updateHUD();
+          if (prefersReducedMotion || document.hidden) {
+            drawCrossSection(0);
+          }
+        });
+      }, { passive: true });
+
+      window.addEventListener("resize", resize);
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          stopLoop();
+        } else {
+          updateHUD();
+          drawCrossSection(prefersReducedMotion ? 0 : lastAnimTimeSec);
+          startLoop();
+        }
+      });
+
+      if (reducedMotionQuery.addEventListener) {
+        reducedMotionQuery.addEventListener("change", (e) => {
+          prefersReducedMotion = e.matches;
+          if (prefersReducedMotion) {
+            stopLoop();
+            drawCrossSection(0);
+          } else {
+            startLoop();
+          }
+        });
+      }
+
+      window.addEventListener("load", () => {
+        updateSimulator();
+        resize();
+        if (prefersReducedMotion) {
+          drawCrossSection(0);
+        } else {
+          startLoop();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
