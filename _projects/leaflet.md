@@ -18,8 +18,10 @@ Erilaisissa AI-peruspalveluissa (ChatGPT, Gemini, Claude) erilaisista aineistois
 ![vostok]({{ '/assets/images/vostok.webp' | relative_url }})
 
 [MATKA VOSTOKIN POHJALLE](https://ninalista.github.io/done/standalone/vostok.html)
-Gemini Neon 11/2026.
+Gemini Neon 11/2026. 
+
+![tiira]({{ '/assets/images/tiira2.webp' | relative_url }})
 
 [PITKÄT MUISTIINPANOT DIOIKSI](https://ninalista.github.io/done/standalone/tiira.html)
-Tietojen keräys ja jäsentely visuaaliseksi muistiinpanoksi itselle. 1 sivu = 1 tuhti tekstidia.
+ChatGPT 5.6 Sol 9/2026. Omat muistiinpanot AI-avusteisesti koosteeksi itselle. 1 skrollattava sivu = 1 tuhti tekstidia.
 
