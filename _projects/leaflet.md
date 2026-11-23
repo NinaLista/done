@@ -1,11 +1,11 @@
 ---
 layout: project-newspaper
-title: "Nopea, näppärä & nätti verkkosivu (standalone html)"
+title: "Nopea, näppärä & nätti verkkosivu"
 date: 2026-09-05
 tags: [Tools, Web, Experiments, IT Skills]
-short_text: "Kivat nettisivut ja jäsennellyt muistiot helposti"
+short_text: "Kivat nettisivut ja jäsennellyt muistiot helposti (standalone html)"
 back_text: "Tietojen keräys ja jäsentely visuaaliseksi muistioksi: omaan kokoelmaan tai nettisivulle."
-image: /assets/images/leaflet.svg
+image: /assets/images/vostok.webp
 image_position: 50% 50%
 card_style: image
 card_size: compact
