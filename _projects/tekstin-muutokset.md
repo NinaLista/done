@@ -8,5 +8,5 @@ image: /assets/images/tekstin-muutokset.webp
 image_position: 50% 50%
 card_style: image
 card_size: standard
-external_url: "https://ninalista.github.io/tools/02-Text-Everything-v8.html"
+external_url: "https://ninalista.github.io/tools/pages/02-Text-Everything-v8.html"
 ---
